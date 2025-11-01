@@ -1,11 +1,9 @@
 import express from "express";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
+import connectDB, { closeDB } from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoutes.js";
 import cors from "cors";
-import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
 
 dotenv.config({ path: ".env" });
 
@@ -16,18 +14,13 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 
-let mongoServer;
-
+// in-mem db for tests
 beforeAll(async () => {
-  mongoServer = await MongoMemoryServer.create();
-  const uri = mongoServer.getUri();
-  await mongoose.connect(uri);
+  await connectDB();
 });
 
 afterAll(async () => {
-  await mongoose.connection.dropDatabase();
-  await mongoose.connection.close();
-  await mongoServer.stop();
+  await closeDB();
 });
 
 export default app;
