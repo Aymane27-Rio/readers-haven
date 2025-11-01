@@ -28,6 +28,7 @@ jobs:
         run: npx eslint . || true
 
       - name: Run Jest tests
-        run: npm test
         env:
           NODE_ENV: test
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: npm test
