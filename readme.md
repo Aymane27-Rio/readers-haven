@@ -42,6 +42,13 @@ Then open: http://localhost:5173
 docker-compose up --build
 ```
 
+or
+
+```bash
+cd backend
+npm start
+```
+
 ### Run with Docker (Full setup but still in need of some work/refinements)
 
 Uncomment the **frontend** service inside *docker-compose.yml* and then run
