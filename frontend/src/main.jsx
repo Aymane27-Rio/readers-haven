@@ -7,13 +7,32 @@ import Login from "./pages/Login.jsx";
 import Books from "./pages/Books.jsx";
 import Home from "./pages/Home.jsx";
 import GenrePage from "./pages/GenrePage.jsx";
+import Profile from "./pages/Profile.jsx";
 import Navbar from "./components/Navbar.jsx";
-import "@picocss/pico/css/pico.min.css";
 import "./index.css";
+import "./styles/global.css";
 
 function AnimatedRoutes() {
   const location = useLocation();
   const token = localStorage.getItem("token");
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tok = params.get("token");
+    const nm = params.get("name");
+    if (tok) {
+      localStorage.setItem("token", tok);
+      try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
+      // clean the URL (remove token param) without reloading
+      const cleanSearch = Array.from(params.entries()).filter(([k]) => k !== 'token');
+      const cleanUrl = location.pathname + (cleanSearch.length ? '?' + cleanSearch.map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&') : '');
+      window.history.replaceState({}, '', cleanUrl);
+    }
+    if (nm) {
+      localStorage.setItem("name", nm);
+      try { window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+    }
+  }, [location]);
 
   const pageTransition = {
     initial: { opacity: 0, y: 15 },
@@ -64,6 +83,14 @@ function AnimatedRoutes() {
             element={
               <motion.div {...pageTransition}>
                 {token ? <Books /> : <Navigate to="/login" />}
+              </motion.div>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <motion.div {...pageTransition}>
+                {token ? <Profile /> : <Navigate to="/login" />}
               </motion.div>
             }
           />
