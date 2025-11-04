@@ -2,9 +2,13 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  name: String,
+  email: String,
+  password: String,
+  bio: { type: String, default: "" },
+  interests: { type: String, default: "" },
+  favoriteQuote: { type: String, default: "" },
+  profilePic: { type: String, default: "" },
 });
 // hash password (sikority)
 userSchema.pre("save", async function (next) {

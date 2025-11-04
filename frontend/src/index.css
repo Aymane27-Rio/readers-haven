@@ -117,3 +117,16 @@ footer {
   animation: fadeIn 0.8s ease-in-out;
 }
 
+.genre-card, .book-card {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.genre-card:hover, .book-card:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+}
