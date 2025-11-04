@@ -24,9 +24,29 @@ Built with **React + Vite** on the frontend and **Node.js + Express + MongoDB** 
 
 ---
 
+*Note*: It's preferable to have the latest **Node** version installed.
+
 ##  Getting Started
 
 ###  Run Locally (Recommended for Development)
+
+Set two **.env** files. One in the *gateway* folder with the following content:
+
+```bash
+PORT=5000
+AUTH_SERVICE_URL=http://localhost:4000
+BOOKS_SERVICE_URL=http://localhost:4001
+JWT_SECRET=
+VITE_API_URL=http://localhost:5000/api
+```
+
+And the other in the *backend* folder with the following content:
+
+```bash
+MONGO_URI=
+JWT_SECRET=
+PORT=5000
+```
 
 **Frontend**
 ```bash
@@ -46,6 +66,7 @@ or
 
 ```bash
 cd backend
+npm install
 npm start
 ```
 
