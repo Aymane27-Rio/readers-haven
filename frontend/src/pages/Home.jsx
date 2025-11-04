@@ -35,7 +35,7 @@ export default function Home() {
       <main className="page-container pattern-bg fade-in">
         <section className="section hero wrap">
           <h1 className="brand-title brand-title--xl" style={{ textAlign: "center" }}>
-            Welcome to <span style={{ color: "#8b1a1a" }}>Readers Heaven</span>
+            Welcome to <span style={{ color: "#8b1a1a" }}>Readers Haven</span>
           </h1>
           <p className="tagline" style={{ textAlign: "center" }}>
             A cozy digital space for book lovers — manage your library, track your reads,

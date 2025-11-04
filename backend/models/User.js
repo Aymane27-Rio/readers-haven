@@ -7,7 +7,12 @@ const userSchema = new mongoose.Schema({
   password: { type: String }, // optional for OAuth users
   provider: { type: String, enum: ["local", "google", "facebook"], default: "local" },
   providerId: { type: String },
+  username: { type: String, unique: true, sparse: true },
+  bio: { type: String, default: "" },
+  location: { type: String, default: "" },
+  avatarUrl: { type: String, default: "" },
 });
+
 // hash password (sikority)
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password") || !this.password) return next();
