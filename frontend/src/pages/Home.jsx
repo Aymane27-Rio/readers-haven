@@ -32,114 +32,47 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <main
-        className="fade-in-page"
-        style={{
-          minHeight: "85vh",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          textAlign: "center",
-          padding: "2rem",
-          background: "linear-gradient(to bottom, #f0fdf4, #ffffff)",
-        }}
-      >
-        <h1 style={{ color: "#065f46", fontSize: "2.5rem", fontWeight: "bold" }}>
-          Welcome to <span style={{ color: "#8b1a1a" }}>Readers Haven</span>
-        </h1>
+      <main className="page-container pattern-bg fade-in">
+        <section className="section hero wrap">
+          <h1 className="brand-title brand-title--xl" style={{ textAlign: "center" }}>
+            Welcome to <span style={{ color: "#8b1a1a" }}>Readers Haven</span>
+          </h1>
+          <p className="tagline" style={{ textAlign: "center" }}>
+            A cozy digital space for book lovers — manage your library, track your reads,
+            and rediscover the joy of stories.
+          </p>
 
-        <p style={{ maxWidth: "600px", marginTop: "1rem", fontSize: "1.1rem", color: "#374151" }}>
-          A cozy digital space for book lovers — manage your library, track your reads,
-          and rediscover the joy of stories.
-        </p>
+          <div className="vintage-card vintage-card--padded wrap fade-in-slow" style={{ marginTop: "1.5rem", textAlign: "center" }}>
+            <p style={{ fontStyle: "italic" }}>{quote}</p>
+          </div>
 
-        <div
-          className="quote-card"
-          style={{
-            marginTop: "2rem",
-            background: "white",
-            color: "#065f46",
-            fontSize: "1.1rem",
-            fontStyle: "italic",
-            borderRadius: "10px",
-            padding: "1rem 1.5rem",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            maxWidth: "600px",
-          }}
-        >
-          {quote}
-        </div>
+          <section className="wrap" style={{ marginTop: "2rem" }}>
+            <h2 className="brand-title brand-title--lg" style={{ textAlign: "center" }}>Explore by Category</h2>
+            <div className="grid grid--tiles" style={{ marginTop: "1rem" }}>
+              {categories.map((cat, index) => (
+                <div
+                  key={index}
+                  className="tile"
+                  onClick={() => navigate(`/genre/${cat.genre}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === 'Enter' && navigate(`/genre/${cat.genre}`)}
+                >
+                  <div className="tile__icon">{cat.icon}</div>
+                  <p className="brand-title" style={{ fontSize: "1rem" }}>{cat.name}</p>
+                </div>
+              ))}
+            </div>
+          </section>
 
-        {/* ==== Categories Section ==== */}
-        <section style={{ marginTop: "3rem", maxWidth: "700px", width: "100%" }}>
-          <h2 style={{ color: "#065f46", marginBottom: "1rem" }}>Explore by Category</h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-              gap: "1rem",
-              justifyItems: "center",
-            }}
-          >
-            {categories.map((cat, index) => (
-              <div
-                key={index}
-                onClick={() => navigate(`/genre/${cat.genre}`)}
-                style={{
-                  background: "#ffffff",
-                  border: "1px solid #d1fae5",
-                  borderRadius: "12px",
-                  padding: "1rem",
-                  cursor: "pointer",
-                  width: "120px",
-                  transition: "all 0.3s ease",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-              >
-                <div style={{ fontSize: "2rem" }}>{cat.icon}</div>
-                <p style={{ color: "#065f46", fontWeight: "500" }}>{cat.name}</p>
-              </div>
-            ))}
+          <div className="centered" style={{ marginTop: "1.5rem" }}>
+            {token ? (
+              <a className="vintage-button" href="/books">Go to My Books</a>
+            ) : (
+              <a className="vintage-button" href="/login">Start Reading</a>
+            )}
           </div>
         </section>
-
-        {token ? (
-          <a
-            href="/books"
-            style={{
-              marginTop: "2rem",
-              textDecoration: "none",
-              background: "#065f46",
-              color: "white",
-              padding: "10px 20px",
-              borderRadius: "6px",
-              transition: "background 0.3s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#064e3b")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#065f46")}
-          >
-            Go to My Books
-          </a>
-        ) : (
-          <a
-            href="/login"
-            style={{
-              marginTop: "2rem",
-              textDecoration: "none",
-              background: "#8b1a1a",
-              color: "white",
-              padding: "10px 20px",
-              borderRadius: "6px",
-              transition: "background 0.3s ease",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#a32222")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#8b1a1a")}
-          >
-            Start Reading
-          </a>
-        )}
       </main>
       <Footer />
     </>

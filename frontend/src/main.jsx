@@ -14,13 +14,11 @@ import Login from "./pages/Login.jsx";
 import Books from "./pages/Books.jsx";
 import Home from "./pages/Home.jsx";
 import GenrePage from "./pages/GenrePage.jsx";
-import ProfileSetup from "./pages/ProfileSetup.jsx";
-import Genres from "./pages/Genres.jsx";
-
-
+import Profile from "./pages/Profile.jsx";
+import Community from "./pages/Community.jsx";
 import Navbar from "./components/Navbar.jsx";
-import "@picocss/pico/css/pico.min.css";
 import "./index.css";
+import "./styles/global.css";
 
 //  ProtectedRoute component
 function ProtectedRoute({ children }) {
@@ -39,6 +37,32 @@ const pageTransition = {
 //  AnimatedRoutes keeps transitions between pages
 function AnimatedRoutes() {
   const location = useLocation();
+  const token = localStorage.getItem("token");
+
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tok = params.get("token");
+    const nm = params.get("name");
+    if (tok) {
+      localStorage.setItem("token", tok);
+      try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
+      // clean the URL (remove token param) without reloading
+      const cleanSearch = Array.from(params.entries()).filter(([k]) => k !== 'token');
+      const cleanUrl = location.pathname + (cleanSearch.length ? '?' + cleanSearch.map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&') : '');
+      window.history.replaceState({}, '', cleanUrl);
+    }
+    if (nm) {
+      localStorage.setItem("name", nm);
+      try { window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+    }
+  }, [location]);
+
+  const pageTransition = {
+    initial: { opacity: 0, y: 15 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -15 },
+    transition: { duration: 0.4, ease: "easeInOut" },
+  };
 
   return (
     <>
@@ -110,19 +134,22 @@ function AnimatedRoutes() {
               </ProtectedRoute>
             }
           />
-          <Route 
-          path="/genres"
-           element=
-           {
-            <ProtectedRoute>
-            <motion.div {...pageTransition}>
-              <Genres />
-            </motion.div>
-          </ProtectedRoute>
-           } />
-
-
-          {/* 🚪 Default Redirect */}
+          <Route
+            path="/profile"
+            element={
+              <motion.div {...pageTransition}>
+                {token ? <Profile /> : <Navigate to="/login" />}
+              </motion.div>
+            }
+          />
+          <Route
+            path="/community"
+            element={
+              <motion.div {...pageTransition}>
+                <Community />
+              </motion.div>
+            }
+          />
           <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
       </AnimatePresence>
