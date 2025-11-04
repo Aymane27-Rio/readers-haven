@@ -1,8 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-function Navbar() {
+export default function Navbar() {
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -10,30 +11,35 @@ function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center bg-gray-900 text-white px-6 py-3">
-      <h1
-        onClick={() => navigate("/books")}
-        className="text-lg font-semibold cursor-pointer"
-      >
-        📖 Readers Haven
-      </h1>
+    <nav>
+      <div className="logo" style={{ fontWeight: "700", fontSize: "1.3rem" }}>
+        <Link to="/" style={{ color: "white" }}>
+          Readers Haven
+        </Link>
+      </div>
 
-      <div className="flex gap-4">
-        <button
-          onClick={() => navigate("/books")}
-          className="hover:text-blue-300 transition"
-        >
-          My Books
-        </button>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
-        >
-          Logout
-        </button>
+      <div className="links">
+        <Link to="/home">Home</Link>
+        <Link to="/books">Books</Link>
+        {token ? (
+          <button
+            onClick={handleLogout}
+            style={{
+              background: "var(--secondary-color)",
+              border: "none",
+              padding: "0.4rem 0.9rem",
+              borderRadius: "6px",
+              color: "white",
+              cursor: "pointer",
+              marginLeft: "1rem",
+            }}
+          >
+            Logout
+          </button>
+        ) : (
+          <Link to="/login">Login</Link>
+        )}
       </div>
     </nav>
   );
 }
-
-export default Navbar;

@@ -20,8 +20,7 @@ export default function Login() {
 
       localStorage.setItem("token", res.data.token);
       console.log("✅ Login success, navigating...");
-      alert("Login successful!");
-      navigate("/books");
+      navigate("/home");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid credentials");
     }
