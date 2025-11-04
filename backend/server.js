@@ -7,6 +7,10 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import bookRoutes from "./routes/bookRoutes.js";
 import passport, { configurePassport, oauthSuccessRedirect } from "./config/passport.js";
+import profileRoutes from "./routes/profileRoutes.js";
+import quoteRoutes from "./routes/quoteRoutes.js";
+import fs from "fs";
+import path from "path";
 
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
@@ -18,12 +22,19 @@ app.use(express.json());
 app.use(passport.initialize());
 configurePassport();
 
+// Ensure uploads directory exists
+const uploadsDir = path.resolve("uploads");
+try { if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) {}
+app.use("/uploads", express.static(uploadsDir));
+
 app.get("/", (req, res) => {
   res.send("Readers Haven API is running");
 });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/quotes", quoteRoutes);
 
 // OAuth routes (Google)
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
