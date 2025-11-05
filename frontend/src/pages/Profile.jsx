@@ -20,6 +20,10 @@ export default function Profile() {
   const [quotes, setQuotes] = React.useState([]);
   const [quoteText, setQuoteText] = React.useState("");
   const [quoteAuthor, setQuoteAuthor] = React.useState("");
+  // Settings (local only for now)
+  const [theme, setTheme] = React.useState('system'); // 'system' | 'light' | 'dark'
+  const [emailUpdates, setEmailUpdates] = React.useState(true);
+  const [showShelvesPublic, setShowShelvesPublic] = React.useState(true);
 
   const first = name ? name.split(" ")[0] : "there";
 
@@ -48,6 +52,21 @@ export default function Profile() {
       } catch (_) {}
     })();
   }, [token]);
+
+  // Load settings from localStorage
+  React.useEffect(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('settings') || '{}');
+      if (s.theme) setTheme(s.theme);
+      if (typeof s.emailUpdates === 'boolean') setEmailUpdates(s.emailUpdates);
+      if (typeof s.showShelvesPublic === 'boolean') setShowShelvesPublic(s.showShelvesPublic);
+    } catch (_) {}
+  }, []);
+
+  const saveSettings = () => {
+    const s = { theme, emailUpdates, showShelvesPublic };
+    try { localStorage.setItem('settings', JSON.stringify(s)); setStatus('Settings saved'); setTimeout(() => setStatus(''), 1200); } catch (_) {}
+  };
 
   // Load user's quotes
   React.useEffect(() => {

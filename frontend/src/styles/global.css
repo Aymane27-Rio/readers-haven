@@ -1,6 +1,15 @@
+/* RTL polish */
+[dir="rtl"] body { font-family: "Cairo", "Amiri", var(--font-body); }
+[dir="rtl"] .form-row, [dir="rtl"] label { text-align: right; }
+[dir="rtl"] .gr-links { direction: rtl; }
+[dir="rtl"] .gr-links .gr-link { margin-left: .6rem; margin-right: 0; }
 /* Readers Heaven Moroccan Vintage Design System (Vanilla CSS)
    Palette, typography, layout primitives, components, and animations
 */
+
+/* Tifinagh font for Tamazight */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tifinagh&display=swap');
+html[lang="zgh"] body { font-family: 'Noto Sans Tifinagh', var(--font-body); }
 
 :root {
   /* Core colors */
@@ -25,14 +34,33 @@
   /* Type */
   --font-title: "Cinzel", "Playfair Display", Georgia, serif;
   --font-body: "Poppins", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+
+  /* Theming */
+  --bg: #faf7f2;
+  --text: #2b2b2b;
+  --muted: #6b7280;
+  --card: #fffdf8;
+  --border: #e8dfd2;
+  --accent: #b87333;
+  --link: #007f8a;
+}
+
+[data-theme="dark"] {
+  --bg: #1a1410;
+  --text: #e6d9bf; /* soft gold */
+  --muted: #b9ab93;
+  --card: #221b16;
+  --border: #3a2f27;
+  --accent: #a8793a; /* warm gold */
+  --link: #5eb3b3; /* muted turquoise */
 }
 
 /* Base resets */
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
-body { margin: 0; color: var(--ink); font-family: var(--font-body); line-height: 1.6; }
+body { margin: 0; color: var(--text); font-family: var(--font-body); line-height: 1.6; background: var(--bg); transition: background-color .35s ease, color .35s ease; }
 
-a { color: var(--turquoise); text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* Backgrounds
@@ -70,15 +98,16 @@ a:hover { text-decoration: underline; }
 .brand-title { font-family: var(--font-title); color: var(--wood); letter-spacing: .5px; }
 .brand-title--xl { font-size: clamp(2rem, 1.2rem + 3vw, 3.2rem); }
 .brand-title--lg { font-size: clamp(1.6rem, 1.1rem + 2vw, 2.4rem); }
-.tagline { color: var(--muted); font-size: 1rem; }
+.tagline, .form-meta { color: var(--muted); font-size: 1rem; transition: color .35s ease; }
 
 /* Components */
 .vintage-card {
-  background: linear-gradient(180deg, #fffdf9, var(--paper));
-  border: 2px solid var(--gold);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card), var(--shadow-inset);
   padding: 1.25rem;
+  transition: background-color .35s ease, border-color .35s ease, color .35s ease, box-shadow .35s ease;
 }
 .vintage-card--padded { padding: 2rem; }
 .vintage-card:hover { box-shadow: 0 18px 28px rgba(0,0,0,0.18), 0 4px 10px rgba(0,0,0,0.12); }
@@ -94,21 +123,21 @@ a:hover { text-decoration: underline; }
 }
 .vintage-button:hover { filter: brightness(.98) saturate(1.03); }
 .vintage-button:active { transform: translateY(1px); box-shadow: 0 6px 10px rgba(181,84,0,0.22), inset 0 1px 2px rgba(0,0,0,0.12); }
-.vintage-button--ghost { background: transparent; color: var(--terracotta); border-color: var(--gold); }
+.vintage-button--ghost { background: transparent; color: var(--text); border-color: var(--border); }
 .vintage-button--gold { background: linear-gradient(180deg, #ead083, var(--gold)); border-color: var(--gold); color: #2d2414; }
 
 .input, .select, .textarea {
-  width: 100%; border: 1px solid #cdbba6; border-radius: var(--radius-md);
-  background: linear-gradient(180deg, #fff, #fbfaf6);
-  color: var(--ink); padding: .8rem .9rem; outline: none;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), inset 0 -1px 0 rgba(0,0,0,.04);
-  transition: border-color .15s ease, box-shadow .15s ease;
+  width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--card);
+  color: var(--text); padding: .8rem .9rem; outline: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.06);
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease, color .15s ease;
 }
 .input:focus, .select:focus, .textarea:focus { border-color: var(--gold); box-shadow: var(--ring-gold), inset 0 1px 0 rgba(255,255,255,.75); }
-.vintage-button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.vintage-button:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; }
 
 .checkbox { display: inline-flex; align-items: center; gap: .55rem; cursor: pointer; user-select: none; color: #4e4a42; }
-.checkbox input { appearance: none; width: 18px; height: 18px; border: 2px solid var(--gold); border-radius: 5px; background: #fff; position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,.6); transition: background-color .15s ease, box-shadow .15s ease; }
+.checkbox input { appearance: none; width: 18px; height: 18px; border: 2px solid var(--gold); border-radius: 5px; background: var(--card); position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,.12); transition: background-color .15s ease, box-shadow .15s ease; }
 .checkbox input:checked { background: linear-gradient(180deg, #e3cc8c, var(--gold)); box-shadow: 0 0 0 3px rgba(201,162,39,.18) inset; }
 .checkbox input:checked::after { content: ""; position: absolute; inset: 2px 5px 5px 2px; border: solid #3e2f0c; border-width: 0 0 3px 3px; transform: rotate(-45deg); }
 

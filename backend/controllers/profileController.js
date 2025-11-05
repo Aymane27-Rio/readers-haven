@@ -33,13 +33,18 @@ export const getMe = async (req, res) => {
     bio: u.bio || "",
     location: u.location || "",
     avatarUrl: u.avatarUrl || "",
+    preferences: {
+      theme: u.preferences?.theme || 'system',
+      emailUpdates: typeof u.preferences?.emailUpdates === 'boolean' ? u.preferences.emailUpdates : true,
+      showShelvesPublic: typeof u.preferences?.showShelvesPublic === 'boolean' ? u.preferences.showShelvesPublic : true,
+      language: u.preferences?.language || 'en',
+    },
   });
 };
 
 export const updateMe = async (req, res) => {
   try {
-    const { name, username, bio, location } = req.body;
-    const { avatarUrl } = req.body;
+    const { name, username, bio, location, preferences, avatarUrl } = req.body;
     // basic sanitization/trim
     const updates = {};
     if (typeof name === "string") updates.name = name.trim();
@@ -47,6 +52,16 @@ export const updateMe = async (req, res) => {
     if (typeof bio === "string") updates.bio = bio.trim();
     if (typeof location === "string") updates.location = location.trim();
     if (typeof avatarUrl === "string") updates.avatarUrl = avatarUrl.trim();
+
+    // preferences update (validated fields only)
+    if (preferences && typeof preferences === 'object') {
+      const next = { ...(req.user.preferences?.toObject?.() || req.user.preferences || {}) };
+      if (typeof preferences.theme === 'string' && ['system','light','dark'].includes(preferences.theme)) next.theme = preferences.theme;
+      if (typeof preferences.emailUpdates === 'boolean') next.emailUpdates = preferences.emailUpdates;
+      if (typeof preferences.showShelvesPublic === 'boolean') next.showShelvesPublic = preferences.showShelvesPublic;
+      if (typeof preferences.language === 'string' && ['en','ar'].includes(preferences.language)) next.language = preferences.language;
+      updates.preferences = next;
+    }
 
     // unique username check when provided
     if (updates.username) {
@@ -63,6 +78,12 @@ export const updateMe = async (req, res) => {
       bio: user.bio || "",
       location: user.location || "",
       avatarUrl: user.avatarUrl || "",
+      preferences: {
+        theme: user.preferences?.theme || 'system',
+        emailUpdates: typeof user.preferences?.emailUpdates === 'boolean' ? user.preferences.emailUpdates : true,
+        showShelvesPublic: typeof user.preferences?.showShelvesPublic === 'boolean' ? user.preferences.showShelvesPublic : true,
+        language: user.preferences?.language || 'en',
+      },
     });
   } catch (e) {
     res.status(500).json({ message: e.message });

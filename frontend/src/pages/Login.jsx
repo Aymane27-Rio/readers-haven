@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { t } from "../i18n";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -19,9 +20,11 @@ export default function Login() {
         password,
       });
 
-      localStorage.setItem("token", res.data.token);
+      // Persist auth depending on Remember Me
+      const storage = remember ? localStorage : sessionStorage;
+      storage.setItem("token", res.data.token);
       if (res.data?.name) {
-        try { localStorage.setItem("name", res.data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+        try { storage.setItem("name", res.data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
       }
       try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
       console.log("✅ Login success, navigating...");
@@ -36,20 +39,20 @@ export default function Login() {
       <section className="auth-card vintage-card vintage-card--padded fade-in">
         <header className="auth-header">
           <div className="auth-crest" aria-hidden="true"></div>
-          <h1 className="auth-title">Readers Haven</h1>
-          <p className="auth-tagline">Where stories are etched in time</p>
+          <h1 className="auth-title">{t('auth.app')}</h1>
+          <p className="auth-tagline">{t('auth.tagline')}</p>
         </header>
 
         <form className="form" onSubmit={handleSubmit} noValidate>
           <div>
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('auth.email')}</label>
             <input
               id="email"
               name="email"
               type="email"
               autoComplete="email"
               required
-              placeholder="you@example.com"
+              placeholder={t('auth.email_ph')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="input"
@@ -57,14 +60,14 @@ export default function Login() {
           </div>
 
           <div>
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('auth.password')}</label>
             <input
               id="password"
               name="password"
               type="password"
               autoComplete="current-password"
               required
-              placeholder="••••••••"
+              placeholder={t('auth.password_ph')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="input"
@@ -79,20 +82,20 @@ export default function Login() {
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
               />
-              <span>Remember me</span>
+              <span>{t('auth.remember')}</span>
             </label>
 
-            <Link className="link" to="#">Forgot password?</Link>
+            <Link className="link" to="/forgot">{t('auth.forgot')}</Link>
           </div>
 
-          <button className="vintage-button" type="submit">Login</button>
+          <button className="vintage-button" type="submit">{t('auth.login')}</button>
 
           {error && (
             <p className="form-meta" style={{ color: "#b91c1c" }}>{error}</p>
           )}
 
           <p className="form-meta">
-            Don’t have an account? <Link className="link" to="/signup">Create account</Link>
+            {t('auth.no_account')} <Link className="link" to="/signup">{t('auth.create_account')}</Link>
           </p>
         </form>
 
@@ -102,11 +105,11 @@ export default function Login() {
             type="button"
             className="btn-social btn-google"
             onClick={() => { window.location.href = "http://localhost:5000/auth/google"; }}
-            aria-label="Continue with Google"
+            aria-label={t('auth.continue_google')}
           >
             {/* Google G icon */}
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.989h10.5c.1.56.15 1.14.15 1.74 0 6.09-4.09 10.41-10.65 10.41A11.85 11.85 0 0 1 0 12 11.85 11.85 0 0 1 12 0c3.2 0 5.88 1.17 7.9 3.07l-3.2 3.02C15.5 4.94 13.92 4.3 12 4.3 8.23 4.3 5.1 7.45 5.1 11.2s3.13 6.9 6.9 6.9c3.5 0 5.6-2 5.85-4.78H12v-1.33z"/></svg>
-            Continue with Google
+            {t('auth.continue_google')}
           </button>
         </div>
       </section>

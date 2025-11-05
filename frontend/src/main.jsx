@@ -9,13 +9,40 @@ import Home from "./pages/Home.jsx";
 import GenrePage from "./pages/GenrePage.jsx";
 import Profile from "./pages/Profile.jsx";
 import Community from "./pages/Community.jsx";
+import Settings from "./pages/Settings.jsx";
+import ForgotPassword from "./pages/ForgotPassword.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 import Navbar from "./components/Navbar.jsx";
 import "./index.css";
 import "./styles/global.css";
 
 function AnimatedRoutes() {
   const location = useLocation();
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  // Apply persisted language and theme
+  React.useEffect(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem('settings') || '{}');
+      const lang = (localStorage.getItem('lang') || s.language || 'en');
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      const theme = s.theme || 'system';
+      if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      else if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      else document.documentElement.removeAttribute('data-theme');
+      window.addEventListener('settings:changed', () => {
+        const s2 = JSON.parse(localStorage.getItem('settings') || '{}');
+        const lang2 = (localStorage.getItem('lang') || s2.language || 'en');
+        document.documentElement.lang = lang2;
+        document.documentElement.dir = lang2 === 'ar' ? 'rtl' : 'ltr';
+        const theme2 = s2.theme || 'system';
+        if (theme2 === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        else if (theme2 === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        else document.documentElement.removeAttribute('data-theme');
+      });
+    } catch (_) {}
+  }, []);
 
   React.useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -80,6 +107,22 @@ function AnimatedRoutes() {
             }
           />
           <Route
+            path="/forgot"
+            element={
+              <motion.div {...pageTransition}>
+                <ForgotPassword />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/reset"
+            element={
+              <motion.div {...pageTransition}>
+                <ResetPassword />
+              </motion.div>
+            }
+          />
+          <Route
             path="/books"
             element={
               <motion.div {...pageTransition}>
@@ -100,6 +143,14 @@ function AnimatedRoutes() {
             element={
               <motion.div {...pageTransition}>
                 <Community />
+              </motion.div>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <motion.div {...pageTransition}>
+                {token ? <Settings /> : <Navigate to="/login" />}
               </motion.div>
             }
           />
