@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tifinagh&display=swap');
+html[lang="zgh"] body { font-family: 'Noto Sans Tifinagh', var(--font-body); }
+
 /* Explore Genres Tile */
 .tile {
   background: var(--card);
@@ -27,8 +30,6 @@
 */
 
 /* Tifinagh font for Tamazight */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Tifinagh&display=swap');
-html[lang="zgh"] body { font-family: 'Noto Sans Tifinagh', var(--font-body); }
 
 :root {
   /* Core colors */

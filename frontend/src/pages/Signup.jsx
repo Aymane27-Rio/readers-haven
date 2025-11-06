@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { API_BASE } from "../services/apiBase.js";
 
 const API_URL = "http://localhost:5000/api/auth/register"; // adjust if backend runs elsewhere
 
@@ -13,6 +14,8 @@ export default function Signup() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const SITE_KEY = import.meta.env?.VITE_RECAPTCHA_SITE_KEY || "";
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -97,25 +100,47 @@ export default function Signup() {
             required
           />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            className="input"
-            required
-          />
+          <div className="form-row" style={{ gap: '.5rem' }}>
+            <input
+              type={showPwd ? 'text' : 'password'}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="input"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPwd((v) => !v)}
+              className="vintage-button vintage-button--ghost"
+              aria-label={showPwd ? 'Hide password' : 'Show password'}
+              title={showPwd ? 'Hide password' : 'Show password'}
+            >
+              {showPwd ? '🙈' : '👁️'}
+            </button>
+          </div>
 
-          <input
-            type="password"
-            name="confirm"
-            placeholder="Confirm password"
-            value={formData.confirm}
-            onChange={handleChange}
-            className="input"
-            required
-          />
+          <div className="form-row" style={{ gap: '.5rem' }}>
+            <input
+              type={showConfirm ? 'text' : 'password'}
+              name="confirm"
+              placeholder="Confirm password"
+              value={formData.confirm}
+              onChange={handleChange}
+              className="input"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirm((v) => !v)}
+              className="vintage-button vintage-button--ghost"
+              aria-label={showConfirm ? 'Hide password' : 'Show password'}
+              title={showConfirm ? 'Hide password' : 'Show password'}
+            >
+              {showConfirm ? '🙈' : '👁️'}
+            </button>
+          </div>
 
           {/* Google reCAPTCHA v2 checkbox */}
           {Boolean(SITE_KEY) && (
@@ -134,7 +159,7 @@ export default function Signup() {
           <button
             type="button"
             className="btn-social btn-google"
-            onClick={() => { window.location.href = "http://localhost:5000/auth/google"; }}
+            onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
             aria-label="Continue with Google"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.989h10.5c.1.56.15 1.14.15 1.74 0 6.09-4.09 10.41-10.65 10.41A11.85 11.85 0 0 1 0 12 11.85 11.85 0 0 1 12 0c3.2 0 5.88 1.17 7.9 3.07l-3.2 3.02C15.5 4.94 13.92 4.3 12 4.3 8.23 4.3 5.1 7.45 5.1 11.2s3.13 6.9 6.9 6.9c3.5 0 5.6-2 5.85-4.78H12v-1.33z"/></svg>

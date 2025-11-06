@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { t } from "../i18n";
+import { API_BASE } from "../services/apiBase.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,17 +63,28 @@ export default function Login() {
 
           <div>
             <label htmlFor="password">{t('auth.password')}</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              placeholder={t('auth.password_ph')}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-            />
+            <div className="form-row" style={{ gap: '.5rem' }}>
+              <input
+                id="password"
+                name="password"
+                type={showPwd ? 'text' : 'password'}
+                autoComplete="current-password"
+                required
+                placeholder={t('auth.password_ph')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="input"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPwd((v) => !v)}
+                className="vintage-button vintage-button--ghost"
+                aria-label={showPwd ? t('auth.hide_password') || 'Hide password' : t('auth.show_password') || 'Show password'}
+                title={showPwd ? (t('auth.hide_password') || 'Hide password') : (t('auth.show_password') || 'Show password')}
+              >
+                {showPwd ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
 
           <div className="form-row">
@@ -104,7 +117,7 @@ export default function Login() {
           <button
             type="button"
             className="btn-social btn-google"
-            onClick={() => { window.location.href = "http://localhost:5000/auth/google"; }}
+            onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
             aria-label={t('auth.continue_google')}
           >
             {/* Google G icon */}

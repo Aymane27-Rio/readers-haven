@@ -10,73 +10,78 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
-    build: ./backend
+  auth-service:
+    build:
+      context: .
+      dockerfile: services/auth-service/Dockerfile
+    container_name: auth-service
     ports:
-      - "5000:5000"
-    volumes:
-      - ./backend:/app
+      - "5001:5001"
     environment:
       - NODE_ENV=development
+      - PORT=5001
       - MONGO_URI=mongodb://mongo:27017/readers-haven
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - OAUTH_CALLBACK_BASE=http://gateway:8080
     depends_on:
       mongo:
         condition: service_healthy
 
   gateway:
-    build: ./backend/gateway
+    build: ./gateway
+    container_name: gateway
     environment:
       - GATEWAY_PORT=8080
-      - BACKEND_URL=http://backend:5000
-      - ORDER_URL=http://order-service:7001
-      - INVENTORY_URL=http://inventory-service:7002
-      - BOOKS_URL=http://books-service:7003
-      - QUOTES_URL=http://quotes-service:7004
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - BOOKS_SERVICE_URL=http://books-service:5002
+      - QUOTES_SERVICE_URL=http://quotes-service:5003
+      - ORDERS_SERVICE_URL=http://order-service:5004
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
-      - PROXY_TIMEOUT_MS=6000
-      - PROXY_RETRIES=2
     ports:
       - "8080:8080"
     depends_on:
-      - backend
+      - auth-service
       - books-service
       - quotes-service
 
   order-service:
-    build: ./backend/microservices/order-service
+    build: ./services/order-service
+    container_name: order-service
     environment:
-      - PORT=7001
+      - PORT=5004
     ports:
-      - "7001:7001"
+      - "5004:5004"
 
   inventory-service:
-    build: ./backend/microservices/inventory-service
+    build: ./services/inventory-service
+    container_name: inventory-service
     environment:
-      - PORT=7002
+      - PORT=5005
     ports:
-      - "7002:7002"
+      - "5005:5005"
 
   books-service:
-    build: ./backend/microservices/books-service
+    build: ./services/books-service
+    container_name: books-service
     environment:
-      - PORT=7003
+      - PORT=5002
       - MONGO_URI=mongodb://mongo:27017/readers-haven
     ports:
-      - "7003:7003"
+      - "5002:5002"
     depends_on:
       mongo:
         condition: service_healthy
 
   quotes-service:
-    build: ./backend/microservices/quotes-service
+    build: ./services/quotes-service
+    container_name: quotes-service
     environment:
-      - PORT=7004
+      - PORT=5003
       - MONGO_URI=mongodb://mongo:27017/readers-haven
     ports:
-      - "7004:7004"
+      - "5003:5003"
     depends_on:
       mongo:
         condition: service_healthy

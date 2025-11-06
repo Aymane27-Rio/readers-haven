@@ -55,11 +55,44 @@ function verifyJWT(req, res, next) {
   }
 }
 
-// Public routes (auth)
+// Public OAuth passthrough (Google)
+app.use('/auth/google', createProxyMiddleware({
+  target: BACKEND_URL,
+  changeOrigin: true,
+  timeout: PROXY_TIMEOUT_MS,
+  proxyTimeout: PROXY_TIMEOUT_MS,
+  onProxyReq(proxyReq, req) {
+    if (req.id) proxyReq.setHeader('x-request-id', req.id);
+  }
+}));
+app.use('/auth/google/callback', createProxyMiddleware({
+  target: BACKEND_URL,
+  changeOrigin: true,
+  timeout: PROXY_TIMEOUT_MS,
+  proxyTimeout: PROXY_TIMEOUT_MS,
+  onProxyReq(proxyReq, req) {
+    if (req.id) proxyReq.setHeader('x-request-id', req.id);
+  }
+}));
+// Friendly alias: /google -> /auth/google
+app.get('/google', (req, res) => res.redirect(302, '/auth/google'));
+
+// Public routes (REST auth API)
 app.use('/auth', createProxyMiddleware({
   target: BACKEND_URL,
   changeOrigin: true,
   pathRewrite: { '^/auth': '/api/auth' },
+  timeout: PROXY_TIMEOUT_MS,
+  proxyTimeout: PROXY_TIMEOUT_MS,
+  onProxyReq(proxyReq, req) {
+    if (req.id) proxyReq.setHeader('x-request-id', req.id);
+  }
+}));
+
+// Public static uploads passthrough
+app.use('/uploads', createProxyMiddleware({
+  target: BACKEND_URL,
+  changeOrigin: true,
   timeout: PROXY_TIMEOUT_MS,
   proxyTimeout: PROXY_TIMEOUT_MS,
   onProxyReq(proxyReq, req) {
@@ -122,6 +155,6 @@ app.get('/metrics', (req, res) => {
   res.send(`# HELP gateway_requests_total Total number of HTTP requests\n# TYPE gateway_requests_total counter\ngateway_requests_total{service="api-gateway"} 1\n`);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`[gateway] listening on ${PORT}, proxy -> ${BACKEND_URL}`);
 });

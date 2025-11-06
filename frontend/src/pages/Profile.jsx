@@ -197,9 +197,10 @@ export default function Profile() {
         setMode('view');
         notify("Profile saved");
       
-    } catch (_) {
-      setError("Network error while saving profile");
-      notify("Failed to save profile", "error");
+    } catch (e) {
+      const msg = e?.message || "Failed to save profile";
+      setError(msg);
+      notify(msg, "error");
     } finally {
       setSaving(false);
     }
