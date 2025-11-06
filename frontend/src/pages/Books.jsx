@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect, useMemo } from "react";
+import { useLocation } from "react-router-dom";
+import { fetchJson } from "../services/unwrap.js";
 import Navbar from "../components/Navbar.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
+import { genreData } from "../data/genres.js";
+import LoadingSkeleton from "../components/LoadingSkeleton.jsx";
+import { useToast } from "../components/ToastProvider.jsx";
+import { API_BASE } from "../services/apiBase.js";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -8,54 +14,58 @@ function Books() {
   const [author, setAuthor] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const location = useLocation();
+  const { notify } = useToast();
 
-  const token = localStorage.getItem("token");
-  const API_URL = "http://localhost:5000/api/books";
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const API_URL = `${API_BASE}/books`;
 
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setBooks(res.data);
+      const data = await fetchJson(API_URL, { headers: { Authorization: `Bearer ${token}` } });
+      setBooks(data);
       setLoading(false);
     } catch (err) {
       console.error(err);
       setError("Failed to load books");
+      notify("Failed to load books", "error");
       setLoading(false);
     }
   };
 
   const addBook = async (e) => {
     e.preventDefault();
-    if (!title || !author) return alert("Please fill all fields");
+    if (!title || !author) {
+      notify("Please fill all fields", "error");
+      return;
+    }
 
     try {
-      const res = await axios.post(
-        API_URL,
-        { title, author },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setBooks([...books, res.data]);
+      const newBook = await fetchJson(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ title, author })
+      });
+      setBooks([...books, newBook]);
       setTitle("");
       setAuthor("");
+      notify("Book added");
     } catch (err) {
       console.error(err);
-      alert("Failed to add book");
+      notify("Failed to add book", "error");
     }
   };
 
   const deleteBook = async (id) => {
     if (!window.confirm("Delete this book?")) return;
     try {
-      await axios.delete(`${API_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await fetchJson(`${API_URL}/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       setBooks(books.filter((book) => book._id !== id));
+      notify("Book deleted");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete book");
+      notify("Failed to delete book", "error");
     }
   };
 
@@ -63,71 +73,105 @@ function Books() {
     fetchBooks();
   }, []);
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
-  if (error) return <p className="text-center text-red-500 mt-10">{error}</p>;
+  // derive query param q for client-side filtering
+  const q = useMemo(() => new URLSearchParams(location.search).get("q")?.trim().toLowerCase() || "", [location.search]);
+  const filteredBooks = useMemo(() => {
+    if (!q) return books;
+    return books.filter((b) =>
+      [b.title, b.author].some((v) => String(v || "").toLowerCase().includes(q))
+    );
+  }, [books, q]);
+
+  // compute genre matches across all genreData entries when querying
+  const genreMatches = useMemo(() => {
+    if (!q) return [];
+    const results = [];
+    Object.entries(genreData).forEach(([genre, items]) => {
+      items.forEach((item) => {
+        const hay = `${item.title} ${item.author} ${genre}`.toLowerCase();
+        if (hay.includes(q)) results.push({ ...item, genre });
+      });
+    });
+    return results;
+  }, [q]);
+
+  const showGenresFirst = q && genreMatches.length > 0;
+  const displayCount = showGenresFirst ? genreMatches.length : filteredBooks.length;
+
+  if (error) return <p className="section wrap" style={{ textAlign: "center", color: "#b91c1c" }}>{error}</p>;
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-gradient-to-b from-emerald-100 to-emerald-50">
-        <div className="w-full max-w-2xl bg-white p-10 rounded-2xl shadow-xl border border-emerald-200">
-          <h1 className="text-3xl font-extrabold mb-6 text-center text-emerald-700">
-            📚 My Book Collection
-          </h1>
+      <Breadcrumbs />
+      <main className="page-container pattern-bg section centered">
+        <div className="wrap">
+          <div className="vintage-card vintage-card--padded">
+            <h1 className="brand-title brand-title--lg" style={{ textAlign: "center", marginBottom: "1rem" }}>
+              {showGenresFirst ? '📚 Catalog Results' : '📚 My Book Collection'}
+              {q && (
+                <span className="badge" title="Results count">
+                  {displayCount}
+                </span>
+              )}
+            </h1>
 
-          <form
-            onSubmit={addBook}
-            className="flex flex-col sm:flex-row gap-3 mb-8 justify-center"
-          >
-            <input
-              type="text"
-              placeholder="Book title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="border border-emerald-300 p-3 rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-            <input
-              type="text"
-              placeholder="Author"
-              value={author}
-              onChange={(e) => setAuthor(e.target.value)}
-              className="border border-emerald-300 p-3 rounded-md flex-1 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-            <button
-              type="submit"
-              className="bg-emerald-600 text-white py-3 px-6 rounded-md hover:bg-emerald-700 transition"
-            >
-              Add
-            </button>
-          </form>
+            <form onSubmit={addBook} className="form" style={{ marginBottom: "1rem" }}>
+              <div className="form-row">
+                <input
+                  type="text"
+                  placeholder="Book title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="input"
+                />
+                <input
+                  type="text"
+                  placeholder="Author"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  className="input"
+                />
+                <button type="submit" className="vintage-button">Add</button>
+              </div>
+            </form>
 
-          {books.length === 0 ? (
-            <p className="text-center text-gray-500">No books yet.</p>
-          ) : (
-            <ul className="space-y-3">
-              {books.map((book) => (
-                <li
-                  key={book._id}
-                  className="flex justify-between items-center bg-emerald-50 border border-emerald-200 rounded-lg p-3 shadow-sm hover:shadow-md transition"
-                >
-                  <div>
-                    <span className="font-semibold text-emerald-800">
-                      {book.title}
-                    </span>{" "}
-                    <span className="text-gray-600">by {book.author}</span>
-                  </div>
-                  <button
-                    onClick={() => deleteBook(book._id)}
-                    className="text-crimson-500 hover:text-crimson-600 text-sm"
-                  >
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+            {loading ? (
+              <LoadingSkeleton rows={6} variant="grid" />
+            ) : showGenresFirst ? (
+              <ul className="grid grid--cards" style={{ marginTop: ".6rem" }}>
+                {genreMatches.map((g, idx) => (
+                  <li key={`${g.title}-${idx}`} className="vintage-card" style={{ padding: "1rem", display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span className="brand-title" style={{ fontSize: "1.05rem" }}>{g.title}</span>
+                      <span className="tagline" style={{ marginLeft: ".35rem" }}>by {g.author}</span>
+                    </div>
+                    <span className="tagline">{g.genre}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : filteredBooks.length > 0 ? (
+              <ul className="grid grid--cards" style={{ marginTop: ".6rem" }}>
+                {filteredBooks.map((book) => (
+                  <li key={book._id} className="vintage-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <span className="brand-title" style={{ fontSize: "1.05rem" }}>{book.title}</span>
+                      <span className="tagline" style={{ marginLeft: ".35rem" }}>by {book.author}</span>
+                    </div>
+                    <button onClick={() => deleteBook(book._id)} className="vintage-button vintage-button--ghost" style={{ fontSize: ".9rem" }}>
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : q ? (
+              <p className="form-meta">No results for “{q}”.</p>
+            ) : (
+              <p className="form-meta">No books yet.</p>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
     </>
   );
 }

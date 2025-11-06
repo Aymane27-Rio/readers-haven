@@ -5,6 +5,11 @@ const bookSchema = new mongoose.Schema({
   author: { type: String, required: true },
   description: { type: String },
   publishedYear: { type: Number },
+  status: {
+    type: String,
+    enum: ["to-read", "currently-reading", "read"],
+    default: "to-read",
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

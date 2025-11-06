@@ -1,4 +1,15 @@
 services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
     ports:
@@ -7,11 +18,73 @@ services:
       - ./backend:/app
     environment:
       - NODE_ENV=development
+      - MONGO_URI=mongodb://mongo:27017/readers-haven
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+    depends_on:
+      mongo:
+        condition: service_healthy
 
-  # frontend:
-  #   build: ./frontend
-  #   ports:
-  #     - "5173:5173"
-  #   volumes:
-  #     - ./frontend:/app
-  #   command: npm run dev
+  gateway:
+    build: ./backend/gateway
+    environment:
+      - GATEWAY_PORT=8080
+      - BACKEND_URL=http://backend:5000
+      - ORDER_URL=http://order-service:7001
+      - INVENTORY_URL=http://inventory-service:7002
+      - BOOKS_URL=http://books-service:7003
+      - QUOTES_URL=http://quotes-service:7004
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
+      - PROXY_TIMEOUT_MS=6000
+      - PROXY_RETRIES=2
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+      - books-service
+      - quotes-service
+
+  order-service:
+    build: ./backend/microservices/order-service
+    environment:
+      - PORT=7001
+    ports:
+      - "7001:7001"
+
+  inventory-service:
+    build: ./backend/microservices/inventory-service
+    environment:
+      - PORT=7002
+    ports:
+      - "7002:7002"
+
+  books-service:
+    build: ./backend/microservices/books-service
+    environment:
+      - PORT=7003
+      - MONGO_URI=mongodb://mongo:27017/readers-haven
+    ports:
+      - "7003:7003"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  quotes-service:
+    build: ./backend/microservices/quotes-service
+    environment:
+      - PORT=7004
+      - MONGO_URI=mongodb://mongo:27017/readers-haven
+    ports:
+      - "7004:7004"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    command: npm run dev

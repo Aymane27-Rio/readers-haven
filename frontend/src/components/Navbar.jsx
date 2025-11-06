@@ -1,136 +1,235 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { t } from "../i18n.js";
+import { API_BASE, UPLOADS_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+  const readToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
+  const readName = () => localStorage.getItem("name") || sessionStorage.getItem("name") || "";
+  const [token, setToken] = React.useState(readToken);
+  const [name, setName] = React.useState(readName);
+  const [avatarUrl, setAvatarUrl] = React.useState("");
+  const [open, setOpen] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = React.useRef(null);
+  // Inline settings in dropdown
+  const [theme, setTheme] = React.useState(() => (JSON.parse(localStorage.getItem('settings') || '{}').theme) || 'system');
+  const [emailUpdates, setEmailUpdates] = React.useState(() => {
+    const s = JSON.parse(localStorage.getItem('settings') || '{}');
+    return typeof s.emailUpdates === 'boolean' ? s.emailUpdates : true;
+  });
+  const [showShelvesPublic, setShowShelvesPublic] = React.useState(() => {
+    const s = JSON.parse(localStorage.getItem('settings') || '{}');
+    return typeof s.showShelvesPublic === 'boolean' ? s.showShelvesPublic : true;
+  });
+  const [search, setSearch] = React.useState(() => {
+    // prefill from URL param or last search from localStorage
+    try {
+      const url = new URL(window.location.href);
+      const q = url.searchParams.get("q");
+      return q ?? localStorage.getItem("lastSearch") ?? "";
+    } catch (_) { return localStorage.getItem("lastSearch") ?? ""; }
+  });
+  const debounceRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const onToken = () => { try { localStorage.removeItem('avatarUrl'); } catch(_) {}; setAvatarUrl(""); setToken(readToken()); };
+    const onName = () => setName(readName());
+    window.addEventListener('auth:token', onToken);
+    window.addEventListener('auth:name', onName);
+    window.addEventListener('storage', (e) => { if (e.key === 'token' || e.key === 'name') { onToken(); onName(); } });
+    return () => {
+      window.removeEventListener('auth:token', onToken);
+      window.removeEventListener('auth:name', onName);
+      window.removeEventListener('storage', onToken);
+    };
+  }, []);
+
+  // Fetch profile (name/avatar) when token exists
+  React.useEffect(() => {
+    const load = async () => {
+      if (!token) return;
+      try {
+        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
+        if (data?.name) { localStorage.setItem('name', data.name); setName(data.name); }
+        if (data?.avatarUrl) {
+          const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
+          localStorage.setItem('avatarUrl', url);
+          setAvatarUrl(url);
+        }
+      } catch (_) {}
+    };
+    load();
+  }, [token]);
+
+  React.useEffect(() => {
+    const onClick = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    const onEsc = (e) => { if (e.key === 'Escape') setMenuOpen(false); };
+    document.addEventListener('click', onClick);
+    document.addEventListener('keydown', onEsc);
+    return () => { document.removeEventListener('click', onClick); document.removeEventListener('keydown', onEsc); };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    sessionStorage.removeItem("token");
+    try { localStorage.removeItem("name"); } catch (_) {}
+    try { sessionStorage.removeItem("name"); } catch (_) {}
+    try { localStorage.removeItem("avatarUrl"); } catch (_) {}
+    try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
+    try { window.dispatchEvent(new Event('auth:name')); } catch (_) {}
     navigate("/login");
   };
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        padding: "1rem 2rem",
-        background: "linear-gradient(90deg, #003300, #660000)",
-        color: "white",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
-      }}
-    >
-      {/* Left side (brand) */}
-      <Link
-        to="/home"
-        style={{
-          color: "var(--secondary-color, #90EE90)",
-          fontSize: "1.5rem",
-          fontWeight: "bold",
-          textDecoration: "none",
-        }}
-      >
-        Readers Haven
-      </Link>
+    // Goodreads-like header: full-width beige, left brand, centered search, right links & auth
+    <header className="gr-nav" role="banner">
+      <div className="gr-nav__inner" role="navigation" aria-label="Primary">
+        {/* Brand (left) */}
+        <div className="gr-brand">
+          <Link to="/login">Readers Haven</Link>
+        </div>
 
-      {/* Right side (menu links) */}
-      <div style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-        <Link
-          to="/home"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            fontWeight: "500",
-          }}
-        >
-          Home
-        </Link>
+        {/* Search (center) */}
+        <div className="gr-search">
+          <input
+            type="search"
+            placeholder="Search books, authors, genres"
+            aria-label="Search"
+            value={search}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSearch(val);
+              // debounce navigation to books with q param
+              if (debounceRef.current) clearTimeout(debounceRef.current);
+              debounceRef.current = setTimeout(() => {
+                const q = val.trim();
+                localStorage.setItem("lastSearch", q);
+                if (q.length > 0) navigate(`/books?q=${encodeURIComponent(q)}`);
+                else navigate(`/books`);
+              }, 300);
+            }}
+          />
+        </div>
 
-        <Link
-          to="/books"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            fontWeight: "500",
-          }}
-        >
-          My Books
-        </Link>
+        {/* Right side: links + actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem' }}>
+          <button className="gr-hamburger" aria-label="Menu" onClick={() => setOpen(!open)}>
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <nav className={`gr-links ${open ? 'is-open' : ''}`}>
+            <NavLink to="/home" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.home')}</NavLink>
+            <NavLink to="/books" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.books')}</NavLink>
+            <NavLink to="/community" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.community')}</NavLink>
+          </nav>
+          <div className="gr-actions">
+            {token ? (
+              <div ref={menuRef} style={{ position: 'relative' }}>
+                <button
+                  aria-haspopup="menu"
+                  aria-expanded={menuOpen}
+                  className="gr-link"
+                  onClick={() => setMenuOpen((v) => !v)}
+                  title={name || 'Profile'}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem' }}
+                >
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" style={{ width: 32, height: 32, borderRadius: '9999px', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{
+                      width: 32, height: 32, borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                      background: 'transparent', color: '#333', fontWeight: 700
+                    }}>
+                      {(name || 'U').trim().charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </button>
+                {menuOpen && (
+                  <div
+                    role="menu"
+                    style={{
+                      position: 'absolute',
+                      right: 0,
+                      top: 'calc(100% + 10px)',
+                      minWidth: 220,
+                      background: 'var(--card)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 8,
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.18), 0 6px 10px rgba(0,0,0,0.12)',
+                      padding: '.25rem',
+                      zIndex: 70,
+                    }}
+                  >
+                    <Link
+                      role="menuitem"
+                      to="/profile"
+                      onClick={() => setMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        padding: '.5rem .75rem',
+                        color: 'var(--text)',
+                        textDecoration: 'none',
+                        borderRadius: 6,
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      {t('nav.profile')}
+                    </Link>
 
-        <Link
-          to="/genre/Fantasy"
-          style={{
-            color: "white",
-            textDecoration: "none",
-            fontWeight: "500",
-          }}
-        >
-          Genres
-        </Link>
+                    <Link
+                      role="menuitem"
+                      to="/settings"
+                      onClick={() => setMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        padding: '.5rem .75rem',
+                        color: 'var(--text)',
+                        textDecoration: 'none',
+                        borderRadius: 6,
+                        marginTop: '.1rem'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      {t('nav.settings')}
+                    </Link>
 
-        {token ? (
-          <>
-            <Link
-              to="/profile-setup"
-              style={{
-                color: "#90EE90",
-                textDecoration: "none",
-                fontWeight: "500",
-              }}
-            >
-              Profile
-            </Link>
-            <button
-              onClick={handleLogout}
-              style={{
-                backgroundColor: "#900",
-                color: "white",
-                border: "none",
-                padding: "0.5rem 1rem",
-                borderRadius: "8px",
-                cursor: "pointer",
-                fontWeight: "500",
-              }}
-            >
-              Logout
-            </button>
-          </>
-        ) : (
-          <>
-            <Link
-              to="/login"
-              style={{
-                color: "#90EE90",
-                textDecoration: "none",
-                fontWeight: "500",
-              }}
-            >
-              Login
-            </Link>
-
-            <Link
-              to="/signup"
-              style={{
-                color: "#90EE90",
-                textDecoration: "none",
-                fontWeight: "500",
-              }}
-            >
-              Signup
-            </Link>
-
-            <Link to="/genres"
-             style={{ color: "#90EE90",
-              textDecoration: "none",
-               fontWeight: "500" }}
-               >Genres
-               </Link>
-
-          </>
-        )}
+                    <div style={{ height: 1, background: 'var(--border)', margin: '.25rem 0' }} />
+                    <button
+                      role="menuitem"
+                      onClick={handleLogout}
+                      style={{
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: '.5rem .75rem',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text)',
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      {t('nav.signOut')}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <NavLink to="/login" className="gr-btn" style={{ textDecoration: 'none' }}>{t('nav.signIn')}</NavLink>
+                <NavLink to="/signup" className="gr-btn" style={{ textDecoration: 'none' }}>{t('nav.join')}</NavLink>
+              </>
+            )}
+          </div>
+        </div>
       </div>
-    </nav>
+    </header>
   );
 }
