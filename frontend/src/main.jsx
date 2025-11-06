@@ -15,6 +15,7 @@ import Books from "./pages/Books.jsx";
 import Home from "./pages/Home.jsx";
 import GenrePage from "./pages/GenrePage.jsx";
 import Profile from "./pages/Profile.jsx";
+import ProfileSetup from "./pages/ProfileSetup.jsx";
 import Community from "./pages/Community.jsx";
 import Navbar from "./components/Navbar.jsx";
 import "./index.css";
