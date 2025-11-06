@@ -1,21 +1,40 @@
 import Quote from "../models/quote.js";
+import { ok, created, error as sendError, notFound, unauthorized, badRequest } from "../utils/response.js";
 
+// @desc Get all quotes
+// @route GET /api/quotes
 export const getQuotes = async (req, res) => {
-  const quotes = await Quote.find({ user: req.user.id }).sort({ createdAt: -1 });
-  res.json(quotes);
+  try {
+    const quotes = await Quote.find({ user: req.user.id }).sort({ createdAt: -1 });
+    return ok(res, quotes, 'Quotes fetched');
+  } catch (e) {
+    return sendError(res, 500, e.message || 'Internal Server Error');
+  }
 };
 
+// @desc Add a quote
+// @route POST /api/quotes
 export const addQuote = async (req, res) => {
-  const { text, author } = req.body;
-  if (!text || !text.trim()) return res.status(400).json({ message: "Quote text is required" });
-  const q = await Quote.create({ text: text.trim(), author: (author || "").trim(), user: req.user.id });
-  res.status(201).json(q);
+  try {
+    const { text, author } = req.body;
+    if (!text || !text.trim()) return badRequest(res, 'Quote text is required');
+    const quote = await Quote.create({ text: text.trim(), author, user: req.user.id });
+    return created(res, quote, 'Quote created');
+  } catch (e) {
+    return sendError(res, 500, e.message || 'Internal Server Error');
+  }
 };
 
+// @desc Delete a quote
+// @route DELETE /api/quotes/:id
 export const deleteQuote = async (req, res) => {
-  const quote = await Quote.findById(req.params.id);
-  if (!quote) return res.status(404).json({ message: "Quote not found" });
-  if (quote.user.toString() !== req.user.id) return res.status(401).json({ message: "Not authorized" });
-  await quote.deleteOne();
-  res.json({ message: "Quote removed" });
+  try {
+    const quote = await Quote.findById(req.params.id);
+    if (!quote) return notFound(res, 'Quote not found');
+    if (quote.user.toString() !== req.user.id) return unauthorized(res, 'Not authorized');
+    await quote.deleteOne();
+    return ok(res, { _id: req.params.id }, 'Quote removed');
+  } catch (e) {
+    return sendError(res, 500, e.message || 'Internal Server Error');
+  }
 };

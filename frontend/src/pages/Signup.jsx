@@ -47,16 +47,16 @@ export default function Signup() {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    // Validate reCAPTCHA v2 checkbox
-    if (!window.grecaptcha) {
-      setError("CAPTCHA not loaded. Please refresh the page.");
-      return;
-    }
-    const recaptchaToken = window.grecaptcha.getResponse();
-    if (!recaptchaToken) {
-      setError("Please confirm 'I'm not a robot'.");
-      return;
-    }
+    // reCAPTCHA v2 (optional): include token if available, but do NOT block submission
+    let recaptchaToken = "";
+    try {
+      if (SITE_KEY && window.grecaptcha) {
+        recaptchaToken = window.grecaptcha.getResponse() || "";
+      } else {
+        // Explicitly send a dev bypass marker when no captcha is configured
+        recaptchaToken = "DEV_BYPASS";
+      }
+    } catch (_) {}
 
     if (formData.password !== formData.confirm) {
       setError("Passwords do not match.");
@@ -72,7 +72,7 @@ export default function Signup() {
 
       if (res.ok) {
         const data = await res.json();
-        try { window.grecaptcha.reset(); } catch (_) {}
+        try { if (SITE_KEY && window.grecaptcha) window.grecaptcha.reset(); } catch (_) {}
         // persist token and name so navbar updates immediately
         if (data?.token) {
           try { localStorage.setItem("token", data.token); window.dispatchEvent(new Event('auth:token')); } catch (_) {}
@@ -80,6 +80,7 @@ export default function Signup() {
         if (data?.name) {
           try { localStorage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
         }
+        // Always take user to main page after successful signup
         navigate("/home");
       } else {
         const data = await res.json();
@@ -161,9 +162,11 @@ export default function Signup() {
           />
 
           {/* Google reCAPTCHA v2 checkbox */}
-          <div className="form-row" style={{ alignItems: "center" }}>
-            <div className="g-recaptcha" data-sitekey={SITE_KEY}></div>
-          </div>
+          {Boolean(SITE_KEY) && (
+            <div className="form-row" style={{ alignItems: "center" }}>
+              <div className="g-recaptcha" data-sitekey={SITE_KEY}></div>
+            </div>
+          )}
 
           {error && <p className="form-meta" style={{ color: "#b91c1c" }}>{error}</p>}
 

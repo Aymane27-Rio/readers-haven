@@ -11,7 +11,15 @@ const userSchema = new mongoose.Schema({
   bio: { type: String, default: "" },
   location: { type: String, default: "" },
   avatarUrl: { type: String, default: "" },
-});
+  preferences: {
+    theme: { type: String, enum: ['system', 'light', 'dark'], default: 'system' },
+    emailUpdates: { type: Boolean, default: true },
+    showShelvesPublic: { type: Boolean, default: true },
+    language: { type: String, enum: ['en', 'ar', 'zgh'], default: 'en' },
+  },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
+}, { timestamps: true });
 
 // hash password (sikority)
 userSchema.pre("save", async function (next) {

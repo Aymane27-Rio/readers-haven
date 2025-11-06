@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
-import axios from "axios";
+import { fetchJson } from "../services/unwrap.js";
 import Navbar from "../components/Navbar.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 import { genreData } from "../data/genres.js";
+import LoadingSkeleton from "../components/LoadingSkeleton.jsx";
+import { useToast } from "../components/ToastProvider.jsx";
+import { API_BASE } from "../services/apiBase.js";
 
 function Books() {
   const [books, setBooks] = useState([]);
@@ -11,54 +15,57 @@ function Books() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const location = useLocation();
+  const { notify } = useToast();
 
-  const token = localStorage.getItem("token");
-  const API_URL = "http://localhost:5000/api/books";
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const API_URL = `${API_BASE}/books`;
 
   const fetchBooks = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setBooks(res.data);
+      const data = await fetchJson(API_URL, { headers: { Authorization: `Bearer ${token}` } });
+      setBooks(data);
       setLoading(false);
     } catch (err) {
       console.error(err);
       setError("Failed to load books");
+      notify("Failed to load books", "error");
       setLoading(false);
     }
   };
 
   const addBook = async (e) => {
     e.preventDefault();
-    if (!title || !author) return alert("Please fill all fields");
+    if (!title || !author) {
+      notify("Please fill all fields", "error");
+      return;
+    }
 
     try {
-      const res = await axios.post(
-        API_URL,
-        { title, author },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setBooks([...books, res.data]);
+      const newBook = await fetchJson(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ title, author })
+      });
+      setBooks([...books, newBook]);
       setTitle("");
       setAuthor("");
+      notify("Book added");
     } catch (err) {
       console.error(err);
-      alert("Failed to add book");
+      notify("Failed to add book", "error");
     }
   };
 
   const deleteBook = async (id) => {
     if (!window.confirm("Delete this book?")) return;
     try {
-      await axios.delete(`${API_URL}/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await fetchJson(`${API_URL}/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       setBooks(books.filter((book) => book._id !== id));
+      notify("Book deleted");
     } catch (err) {
       console.error(err);
-      alert("Failed to delete book");
+      notify("Failed to delete book", "error");
     }
   };
 
@@ -96,6 +103,7 @@ function Books() {
   return (
     <>
       <Navbar />
+      <Breadcrumbs />
       <main className="page-container pattern-bg section centered">
         <div className="wrap">
           <div className="vintage-card vintage-card--padded">
@@ -129,14 +137,7 @@ function Books() {
             </form>
 
             {loading ? (
-              <ul className="grid grid--cards" style={{ marginTop: ".6rem" }}>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <li key={i} className="vintage-card" style={{ padding: "1rem" }}>
-                    <div className="skeleton-line lg" style={{ width: "60%", marginBottom: ".6rem" }}></div>
-                    <div className="skeleton-line" style={{ width: "40%" }}></div>
-                  </li>
-                ))}
-              </ul>
+              <LoadingSkeleton rows={6} variant="grid" />
             ) : showGenresFirst ? (
               <ul className="grid grid--cards" style={{ marginTop: ".6rem" }}>
                 {genreMatches.map((g, idx) => (

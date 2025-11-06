@@ -1,14 +1,29 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { t } from "../i18n.js";
+import { API_BASE, UPLOADS_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const [token, setToken] = React.useState(() => localStorage.getItem("token"));
-  const [name, setName] = React.useState(() => localStorage.getItem("name") || "");
-  const [avatarUrl, setAvatarUrl] = React.useState(() => localStorage.getItem("avatarUrl") || "");
+  const readToken = () => localStorage.getItem("token") || sessionStorage.getItem("token");
+  const readName = () => localStorage.getItem("name") || sessionStorage.getItem("name") || "";
+  const [token, setToken] = React.useState(readToken);
+  const [name, setName] = React.useState(readName);
+  const [avatarUrl, setAvatarUrl] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const menuRef = React.useRef(null);
+  // Inline settings in dropdown
+  const [theme, setTheme] = React.useState(() => (JSON.parse(localStorage.getItem('settings') || '{}').theme) || 'system');
+  const [emailUpdates, setEmailUpdates] = React.useState(() => {
+    const s = JSON.parse(localStorage.getItem('settings') || '{}');
+    return typeof s.emailUpdates === 'boolean' ? s.emailUpdates : true;
+  });
+  const [showShelvesPublic, setShowShelvesPublic] = React.useState(() => {
+    const s = JSON.parse(localStorage.getItem('settings') || '{}');
+    return typeof s.showShelvesPublic === 'boolean' ? s.showShelvesPublic : true;
+  });
   const [search, setSearch] = React.useState(() => {
     // prefill from URL param or last search from localStorage
     try {
@@ -20,11 +35,11 @@ export default function Navbar() {
   const debounceRef = React.useRef(null);
 
   React.useEffect(() => {
-    const onToken = () => setToken(localStorage.getItem("token"));
-    const onName = () => setName(localStorage.getItem("name") || "");
+    const onToken = () => { try { localStorage.removeItem('avatarUrl'); } catch(_) {}; setAvatarUrl(""); setToken(readToken()); };
+    const onName = () => setName(readName());
     window.addEventListener('auth:token', onToken);
     window.addEventListener('auth:name', onName);
-    window.addEventListener('storage', (e) => { if (e.key === 'token') onToken(); });
+    window.addEventListener('storage', (e) => { if (e.key === 'token' || e.key === 'name') { onToken(); onName(); } });
     return () => {
       window.removeEventListener('auth:token', onToken);
       window.removeEventListener('auth:name', onName);
@@ -37,17 +52,12 @@ export default function Navbar() {
     const load = async () => {
       if (!token) return;
       try {
-        const res = await fetch('http://localhost:5000/api/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.name) { localStorage.setItem('name', data.name); setName(data.name); }
-          if (data?.avatarUrl) {
-            const url = data.avatarUrl.startsWith('/uploads') ? `http://localhost:5000${data.avatarUrl}` : data.avatarUrl;
-            localStorage.setItem('avatarUrl', url);
-            setAvatarUrl(url);
-          }
+        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
+        if (data?.name) { localStorage.setItem('name', data.name); setName(data.name); }
+        if (data?.avatarUrl) {
+          const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
+          localStorage.setItem('avatarUrl', url);
+          setAvatarUrl(url);
         }
       } catch (_) {}
     };
@@ -64,8 +74,9 @@ export default function Navbar() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    // optional: clear name when logging out
+    sessionStorage.removeItem("token");
     try { localStorage.removeItem("name"); } catch (_) {}
+    try { sessionStorage.removeItem("name"); } catch (_) {}
     try { localStorage.removeItem("avatarUrl"); } catch (_) {}
     try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
     try { window.dispatchEvent(new Event('auth:name')); } catch (_) {}
@@ -111,9 +122,9 @@ export default function Navbar() {
             <span></span>
           </button>
           <nav className={`gr-links ${open ? 'is-open' : ''}`}>
-            <NavLink to="/home" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>Home</NavLink>
-            <NavLink to="/books" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>My Books</NavLink>
-            <NavLink to="/community" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>Community</NavLink>
+            <NavLink to="/home" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.home')}</NavLink>
+            <NavLink to="/books" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.books')}</NavLink>
+            <NavLink to="/community" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.community')}</NavLink>
           </nav>
           <div className="gr-actions">
             {token ? (
@@ -145,10 +156,10 @@ export default function Navbar() {
                       right: 0,
                       top: 'calc(100% + 10px)',
                       minWidth: 220,
-                      background: '#fff',
-                      border: '1px solid #e5e7eb',
+                      background: 'var(--card)',
+                      border: '1px solid var(--border)',
                       borderRadius: 8,
-                      boxShadow: '0 10px 25px rgba(0,0,0,0.12), 0 6px 10px rgba(0,0,0,0.08)',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.18), 0 6px 10px rgba(0,0,0,0.12)',
                       padding: '.25rem',
                       zIndex: 70,
                     }}
@@ -160,16 +171,35 @@ export default function Navbar() {
                       style={{
                         display: 'block',
                         padding: '.5rem .75rem',
-                        color: '#1f2937',
+                        color: 'var(--text)',
                         textDecoration: 'none',
                         borderRadius: 6,
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f6f7')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      Profile
+                      {t('nav.profile')}
                     </Link>
-                    <div style={{ height: 1, background: '#e5e7eb', margin: '.25rem 0' }} />
+
+                    <Link
+                      role="menuitem"
+                      to="/settings"
+                      onClick={() => setMenuOpen(false)}
+                      style={{
+                        display: 'block',
+                        padding: '.5rem .75rem',
+                        color: 'var(--text)',
+                        textDecoration: 'none',
+                        borderRadius: 6,
+                        marginTop: '.1rem'
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      {t('nav.settings')}
+                    </Link>
+
+                    <div style={{ height: 1, background: 'var(--border)', margin: '.25rem 0' }} />
                     <button
                       role="menuitem"
                       onClick={handleLogout}
@@ -179,22 +209,22 @@ export default function Navbar() {
                         padding: '.5rem .75rem',
                         background: 'transparent',
                         border: 'none',
-                        color: '#b91c1c',
+                        color: 'var(--text)',
                         borderRadius: 6,
                         cursor: 'pointer',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = '#fef2f2')}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg)')}
                       onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     >
-                      Sign Out
+                      {t('nav.signOut')}
                     </button>
                   </div>
                 )}
               </div>
             ) : (
               <>
-                <NavLink to="/login" className="gr-btn" style={{ textDecoration: 'none' }}>Sign In</NavLink>
-                <NavLink to="/signup" className="gr-btn" style={{ textDecoration: 'none' }}>Join</NavLink>
+                <NavLink to="/login" className="gr-btn" style={{ textDecoration: 'none' }}>{t('nav.signIn')}</NavLink>
+                <NavLink to="/signup" className="gr-btn" style={{ textDecoration: 'none' }}>{t('nav.join')}</NavLink>
               </>
             )}
           </div>

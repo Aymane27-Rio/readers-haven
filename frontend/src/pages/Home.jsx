@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { t } from "../i18n.js";
 
 export default function Home() {
   const [quote, setQuote] = useState("");
@@ -35,7 +36,7 @@ export default function Home() {
       <main className="page-container pattern-bg fade-in">
         <section className="section hero wrap">
           <h1 className="brand-title brand-title--xl" style={{ textAlign: "center" }}>
-            Welcome to <span style={{ color: "#8b1a1a" }}>Readers Haven</span>
+            {t('home.welcome')} <span style={{ color: "#8b1a1a" }}>Readers Haven</span>
           </h1>
           <p className="tagline" style={{ textAlign: "center" }}>
             A cozy digital space for book lovers — manage your library, track your reads,
@@ -47,7 +48,7 @@ export default function Home() {
           </div>
 
           <section className="wrap" style={{ marginTop: "2rem" }}>
-            <h2 className="brand-title brand-title--lg" style={{ textAlign: "center" }}>Explore by Category</h2>
+            <h2 className="brand-title brand-title--lg" style={{ textAlign: "center" }}>{t('home.explore')}</h2>
             <div className="grid grid--tiles" style={{ marginTop: "1rem" }}>
               {categories.map((cat, index) => (
                 <div
@@ -67,9 +68,9 @@ export default function Home() {
 
           <div className="centered" style={{ marginTop: "1.5rem" }}>
             {token ? (
-              <a className="vintage-button" href="/books">Go to My Books</a>
+              <Link className="vintage-button" to="/books">{t('home.cta_books')}</Link>
             ) : (
-              <a className="vintage-button" href="/login">Start Reading</a>
+              <Link className="vintage-button" to="/login">{t('home.cta_start')}</Link>
             )}
           </div>
         </section>
