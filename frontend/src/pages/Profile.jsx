@@ -1,13 +1,18 @@
 import React from "react";
 import Navbar from "../components/Navbar.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
+import { API_BASE, UPLOADS_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
+import { useToast } from "../components/ToastProvider.jsx";
 
 export default function Profile() {
-  const token = React.useMemo(() => localStorage.getItem("token"), []);
+  const token = React.useMemo(() => localStorage.getItem("token") || sessionStorage.getItem("token"), []);
+  const { notify } = useToast();
   const [name, setName] = React.useState("");
   const [username, setUsername] = React.useState("");
   const [bio, setBio] = React.useState("");
   const [location, setLocation] = React.useState("");
-  const [avatarUrl, setAvatarUrl] = React.useState(localStorage.getItem("avatarUrl") || "");
+  const [avatarUrl, setAvatarUrl] = React.useState("");
   const [status, setStatus] = React.useState("");
   const [error, setError] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -27,28 +32,26 @@ export default function Profile() {
 
   const first = name ? name.split(" ")[0] : "there";
 
+  const getPayload = (d) => (d && typeof d === 'object' && 'status' in d && 'data' in d ? d.data : d);
+
   // Load current profile
   React.useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/profile", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
+        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
           setName(data.name || "");
           setUsername(data.username || "");
           setBio(data.bio || "");
           setLocation(data.location || "");
           if (data.avatarUrl) {
-            const url = data.avatarUrl.startsWith('/uploads') ? `http://localhost:5000${data.avatarUrl}` : data.avatarUrl;
+            const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
             setAvatarUrl(url);
             localStorage.setItem("avatarUrl", url);
           }
           if (data.name) { localStorage.setItem("name", data.name); try { window.dispatchEvent(new Event('auth:name')); } catch(_) {} }
           // decide initial mode: if user has basic info, show view
           setMode((data.name || data.username || data.bio || data.location) ? 'view' : 'edit');
-        }
+        
       } catch (_) {}
     })();
   }, [token]);
@@ -73,11 +76,8 @@ export default function Profile() {
     (async () => {
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/quotes", { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) {
-          const data = await res.json();
-          setQuotes(data);
-        }
+        const data = await fetchJson(`${API_BASE}/quotes`, { headers: { Authorization: `Bearer ${token}` } });
+        setQuotes(data);
       } catch (_) {}
     })();
   }, [token]);
@@ -87,42 +87,33 @@ export default function Profile() {
     setError("");
     if (!quoteText.trim()) { setError("Quote text is required"); return; }
     try {
-      const res = await fetch("http://localhost:5000/api/quotes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ text: quoteText, author: quoteAuthor }),
+      const q = await fetchJson(`${API_BASE}/quotes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ text: quoteText, author: quoteAuthor })
       });
-      if (res.ok) {
-        const q = await res.json();
-        setQuotes((prev) => [q, ...prev]);
+      setQuotes((prev) => [q, ...prev]);
         setQuoteText("");
         setQuoteAuthor("");
         setStatus("Quote added");
         setTimeout(() => setStatus(""), 1200);
-      } else {
-        const d = await res.json();
-        setError(d.message || "Failed to add quote");
-      }
+        notify("Quote added");
+      
     } catch (_) {
       setError("Network error while adding quote");
+      notify("Failed to add quote", "error");
     }
   };
 
   const deleteQuote = async (id) => {
     setError("");
     try {
-      const res = await fetch(`http://localhost:5000/api/quotes/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        setQuotes((prev) => prev.filter((q) => q._id !== id));
-      } else {
-        const d = await res.json();
-        setError(d.message || "Failed to delete quote");
-      }
+      await fetchJson(`${API_BASE}/quotes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      setQuotes((prev) => prev.filter((q) => q._id !== id));
+      notify("Quote deleted");
     } catch (_) {
       setError("Network error while deleting quote");
+      notify("Failed to delete quote", "error");
     }
   };
 
@@ -131,10 +122,8 @@ export default function Profile() {
     (async () => {
       if (!token) return;
       try {
-        const res = await fetch("http://localhost:5000/api/books", { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) {
-          const data = await res.json();
-          setBooks(data);
+        const data = await fetchJson(`${API_BASE}/books`, { headers: { Authorization: `Bearer ${token}` } });
+        setBooks(data);
           const counts = { toRead: 0, currentlyReading: 0, read: 0 };
           data.forEach((b) => {
             const s = (b.status || "to-read").toLowerCase();
@@ -143,7 +132,6 @@ export default function Profile() {
             else if (s === "read") counts.read += 1;
           });
           setShelves(counts);
-        }
       } catch (_) {}
     })();
   }, [token]);
@@ -176,24 +164,16 @@ export default function Profile() {
     form.append("avatar", file);
     setUploading(true);
     try {
-      const res = await fetch("http://localhost:5000/api/profile/avatar", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const url = data.avatarUrl.startsWith('/uploads') ? `http://localhost:5000${data.avatarUrl}` : data.avatarUrl;
-        setAvatarUrl(url);
-        localStorage.setItem("avatarUrl", url);
-        setStatus("Avatar updated");
-        setTimeout(() => setStatus(""), 1500);
-      } else {
-        const d = await res.json();
-        setError(d.message || "Failed to upload avatar");
-      }
+      const data = await fetchJson(`${API_BASE}/users/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+      const url = data.avatarUrl?.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
+      setAvatarUrl(url);
+      localStorage.setItem("avatarUrl", url);
+      setStatus("Avatar updated");
+      setTimeout(() => setStatus(""), 1500);
+      notify("Avatar updated");
     } catch (e) {
       setError("Network error while uploading avatar");
+      notify("Failed to upload avatar", "error");
     } finally {
       setUploading(false);
     }
@@ -206,26 +186,20 @@ export default function Profile() {
     setError("");
     setSaving(true);
     try {
-      const res = await fetch("http://localhost:5000/api/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ name, username, bio, location }),
+      const data = await fetchJson(`${API_BASE}/users`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ name, username, bio, location })
       });
-      if (res.ok) {
-        const data = await res.json();
         if (data?.name) { localStorage.setItem("name", data.name); try { window.dispatchEvent(new Event('auth:name')); } catch(_) {} }
         setStatus("Profile saved");
         setTimeout(() => setStatus(""), 1500);
         setMode('view');
-      } else {
-        const d = await res.json();
-        setError(d.message || "Failed to save profile");
-      }
+        notify("Profile saved");
+      
     } catch (_) {
       setError("Network error while saving profile");
+      notify("Failed to save profile", "error");
     } finally {
       setSaving(false);
     }
@@ -235,7 +209,7 @@ export default function Profile() {
     setError("");
     setSaving(true);
     try {
-      const res = await fetch("http://localhost:5000/api/profile", {
+      const res = await fetch(`${API_BASE}/users`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ avatarUrl: "" })
@@ -245,12 +219,15 @@ export default function Profile() {
         localStorage.removeItem("avatarUrl");
         setStatus("Photo removed");
         setTimeout(() => setStatus(""), 1200);
+        notify("Photo removed");
       } else {
         const d = await res.json();
         setError(d.message || "Failed to remove photo");
+        notify(d.message || "Failed to remove photo", "error");
       }
     } catch (_) {
       setError("Network error while removing photo");
+      notify("Network error while removing photo", "error");
     } finally {
       setSaving(false);
     }
@@ -259,6 +236,7 @@ export default function Profile() {
   return (
     <>
       <Navbar />
+      <Breadcrumbs />
       <main className="page-container pattern-bg section centered" style={{ marginTop: '1cm' }}>
         <div className="wrap">
           {mode === 'view' ? (

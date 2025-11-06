@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import multer from "multer";
 import path from "path";
 import crypto from "crypto";
+import { ok, badRequest, error as sendError } from "../utils/response.js";
 
 // Multer storage (local uploads)
 const storage = multer.diskStorage({
@@ -25,7 +26,7 @@ export const upload = multer({
 
 export const getMe = async (req, res) => {
   const u = req.user;
-  res.json({
+  return ok(res, {
     _id: u._id,
     name: u.name,
     email: u.email,
@@ -39,7 +40,7 @@ export const getMe = async (req, res) => {
       showShelvesPublic: typeof u.preferences?.showShelvesPublic === 'boolean' ? u.preferences.showShelvesPublic : true,
       language: u.preferences?.language || 'en',
     },
-  });
+  }, 'Profile fetched');
 };
 
 export const updateMe = async (req, res) => {
@@ -59,18 +60,18 @@ export const updateMe = async (req, res) => {
       if (typeof preferences.theme === 'string' && ['system','light','dark'].includes(preferences.theme)) next.theme = preferences.theme;
       if (typeof preferences.emailUpdates === 'boolean') next.emailUpdates = preferences.emailUpdates;
       if (typeof preferences.showShelvesPublic === 'boolean') next.showShelvesPublic = preferences.showShelvesPublic;
-      if (typeof preferences.language === 'string' && ['en','ar'].includes(preferences.language)) next.language = preferences.language;
+      if (typeof preferences.language === 'string' && ['en','ar','zgh'].includes(preferences.language)) next.language = preferences.language;
       updates.preferences = next;
     }
 
     // unique username check when provided
     if (updates.username) {
       const exists = await User.findOne({ username: updates.username, _id: { $ne: req.user._id } });
-      if (exists) return res.status(400).json({ message: "Username already taken" });
+      if (exists) return badRequest(res, "Username already taken");
     }
 
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
-    res.json({
+    return ok(res, {
       _id: user._id,
       name: user.name,
       email: user.email,
@@ -84,19 +85,19 @@ export const updateMe = async (req, res) => {
         showShelvesPublic: typeof user.preferences?.showShelvesPublic === 'boolean' ? user.preferences.showShelvesPublic : true,
         language: user.preferences?.language || 'en',
       },
-    });
+    }, 'Profile updated');
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return sendError(res, 500, e.message || 'Internal Server Error');
   }
 };
 
 export const uploadAvatar = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    if (!req.file) return badRequest(res, "No file uploaded");
     const rel = `/uploads/${req.file.filename}`;
     const user = await User.findByIdAndUpdate(req.user._id, { avatarUrl: rel }, { new: true });
-    res.json({ avatarUrl: user.avatarUrl });
+    return ok(res, { avatarUrl: user.avatarUrl }, 'Avatar updated');
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return sendError(res, 500, e.message || 'Internal Server Error');
   }
 };

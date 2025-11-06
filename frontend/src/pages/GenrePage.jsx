@@ -4,6 +4,8 @@ import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
 import { motion } from "framer-motion";
 import { genreData } from "../data/genres.js";
+import { t } from "../i18n.js";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 
 export default function GenrePage() {
   const { name } = useParams();
@@ -22,6 +24,7 @@ export default function GenrePage() {
   return (
     <>
       <Navbar />
+      <Breadcrumbs />
       <motion.main
         className="page-container pattern-bg section"
         initial={{ opacity: 0 }}
@@ -31,10 +34,10 @@ export default function GenrePage() {
         {genreExists ? (
           <div className="wrap" style={{ textAlign: "center" }}>
             <h1 className="brand-title brand-title--lg" style={{ marginBottom: ".6rem" }}>
-              {name} Books
+              {t('genre.books').replace('{name}', name)}
             </h1>
             <p className="tagline" style={{ marginBottom: "1rem" }}>
-              Explore our handpicked collection of must‑read {name.toLowerCase()} books.
+              {t('genre.explore').replace('{name}', name.toLowerCase())}
             </p>
 
             <div className="grid grid--cards">
@@ -53,9 +56,9 @@ export default function GenrePage() {
         ) : (
           <div className="wrap" style={{ textAlign: "center", marginTop: "2rem" }}>
             <h2 className="brand-title brand-title--lg" style={{ color: "#8b1a1a", marginBottom: ".5rem" }}>
-              Genre Not Found
+              {t('genre.not_found')}
             </h2>
-            <p className="tagline">Sorry, we don’t have any recommendations for this genre yet.</p>
+            <p className="tagline">{t('genre.sorry')}</p>
           </div>
         )}
       </motion.main>

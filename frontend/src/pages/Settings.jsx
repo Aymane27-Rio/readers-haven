@@ -1,6 +1,9 @@
 import React from "react";
 import Navbar from "../components/Navbar.jsx";
 import { t } from "../i18n.js";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
+import { API_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
 
 export default function Settings() {
   const token = React.useMemo(() => localStorage.getItem("token"), []);
@@ -18,15 +21,12 @@ export default function Settings() {
     (async () => {
       if (!token) return;
       try {
-        const res = await fetch('http://localhost:5000/api/profile', { headers: { Authorization: `Bearer ${token}` } });
-        if (res.ok) {
-          const data = await res.json();
+        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
           const p = data.preferences || {};
           if (p.theme) setTheme(p.theme);
           if (typeof p.emailUpdates === 'boolean') setEmailUpdates(p.emailUpdates);
           if (typeof p.showShelvesPublic === 'boolean') setShowShelvesPublic(p.showShelvesPublic);
           if (p.language) setLanguage(p.language);
-        }
       } catch (_) {}
     })();
   }, [token]);
@@ -45,13 +45,7 @@ export default function Settings() {
     setError("");
     setStatus("Saving...");
     try {
-      const res = await fetch('http://localhost:5000/api/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ preferences: { theme, emailUpdates, showShelvesPublic, language } })
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await fetchJson(`${API_BASE}/users`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ preferences: { theme, emailUpdates, showShelvesPublic, language } }) });
         const p = data.preferences || {};
         // persist locally as well
         try { localStorage.setItem('settings', JSON.stringify(p)); } catch (_) {}
@@ -63,11 +57,6 @@ export default function Settings() {
         try { window.dispatchEvent(new Event('settings:changed')); } catch (_) {}
         setStatus('Saved');
         setTimeout(() => setStatus(""), 1200);
-      } else {
-        const d = await res.json();
-        setError(d.message || 'Failed to save');
-        setStatus("");
-      }
     } catch (_) {
       setError('Network error');
       setStatus("");
@@ -77,6 +66,7 @@ export default function Settings() {
   return (
     <>
       <Navbar />
+      <Breadcrumbs />
       <main className="page-container pattern-bg section centered" style={{ marginTop: '1cm' }}>
         <div className="wrap">
           <div className="vintage-card vintage-card--padded">

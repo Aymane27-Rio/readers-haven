@@ -1,6 +1,8 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { t } from "../i18n.js";
+import { API_BASE, UPLOADS_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -8,7 +10,7 @@ export default function Navbar() {
   const readName = () => localStorage.getItem("name") || sessionStorage.getItem("name") || "";
   const [token, setToken] = React.useState(readToken);
   const [name, setName] = React.useState(readName);
-  const [avatarUrl, setAvatarUrl] = React.useState(() => localStorage.getItem("avatarUrl") || "");
+  const [avatarUrl, setAvatarUrl] = React.useState("");
   const [open, setOpen] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const menuRef = React.useRef(null);
@@ -33,7 +35,7 @@ export default function Navbar() {
   const debounceRef = React.useRef(null);
 
   React.useEffect(() => {
-    const onToken = () => setToken(readToken());
+    const onToken = () => { try { localStorage.removeItem('avatarUrl'); } catch(_) {}; setAvatarUrl(""); setToken(readToken()); };
     const onName = () => setName(readName());
     window.addEventListener('auth:token', onToken);
     window.addEventListener('auth:name', onName);
@@ -50,17 +52,12 @@ export default function Navbar() {
     const load = async () => {
       if (!token) return;
       try {
-        const res = await fetch('http://localhost:5000/api/profile', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.name) { localStorage.setItem('name', data.name); setName(data.name); }
-          if (data?.avatarUrl) {
-            const url = data.avatarUrl.startsWith('/uploads') ? `http://localhost:5000${data.avatarUrl}` : data.avatarUrl;
-            localStorage.setItem('avatarUrl', url);
-            setAvatarUrl(url);
-          }
+        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
+        if (data?.name) { localStorage.setItem('name', data.name); setName(data.name); }
+        if (data?.avatarUrl) {
+          const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
+          localStorage.setItem('avatarUrl', url);
+          setAvatarUrl(url);
         }
       } catch (_) {}
     };

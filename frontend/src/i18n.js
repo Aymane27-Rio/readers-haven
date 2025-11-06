@@ -29,6 +29,19 @@ export const dictionaries = {
       already: 'Already have an account?',
       back_login: 'Back to Login'
     }
+    ,
+    home: {
+      welcome: 'Welcome to',
+      explore: 'Explore by Category',
+      cta_books: 'Go to My Books',
+      cta_start: 'Start Reading'
+    },
+    genre: {
+      books: '{name} Books',
+      explore: 'Explore our handpicked collection of must‑read {name} books.',
+      not_found: 'Genre Not Found',
+      sorry: 'Sorry, we don’t have any recommendations for this genre yet.'
+    }
   },
   ar: {
     nav: { home: 'الرئيسية', books: 'كتبي', community: 'المجتمع', signIn: 'تسجيل الدخول', join: 'إنشاء حساب', profile: 'الملف الشخصي', settings: 'الإعدادات', signOut: 'تسجيل الخروج' },
@@ -59,6 +72,19 @@ export const dictionaries = {
       join_tagline: 'انضم إلى مكتبة القرّاء',
       already: 'لديك حساب بالفعل؟',
       back_login: 'العودة لتسجيل الدخول'
+    }
+    ,
+    home: {
+      welcome: 'مرحبًا بك في',
+      explore: 'استكشف حسب الفئة',
+      cta_books: 'اذهب إلى كتبي',
+      cta_start: 'ابدأ القراءة'
+    },
+    genre: {
+      books: 'كتب {name}',
+      explore: 'استكشف مجموعتنا المختارة من أفضل كتب {name}.',
+      not_found: 'الصنف غير موجود',
+      sorry: 'عذرًا، لا توجد توصيات لهذا الصنف حاليًا.'
     }
   }
   ,

@@ -2,6 +2,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import ToastProvider from "./components/ToastProvider.jsx";
 import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import Books from "./pages/Books.jsx";
@@ -12,6 +14,8 @@ import Community from "./pages/Community.jsx";
 import Settings from "./pages/Settings.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import About from "./pages/About.jsx";
+import Contact from "./pages/Contact.jsx";
 import Navbar from "./components/Navbar.jsx";
 import "./index.css";
 import "./styles/global.css";
@@ -71,89 +75,68 @@ function AnimatedRoutes() {
 
   return (
     <>
-      {/* <Navbar /> */}
       <AnimatePresence mode="wait">
         <Routes location={location} key={location.pathname}>
-          <Route
-            path="/home"
-            element={
-              <motion.div {...pageTransition}>
-                <Home />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/genre/:name"
-            element={
-              <motion.div {...pageTransition}>
-                <GenrePage />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/signup"
-            element={
-              <motion.div {...pageTransition}>
-                <Signup />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <motion.div {...pageTransition}>
-                <Login />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/forgot"
-            element={
-              <motion.div {...pageTransition}>
-                <ForgotPassword />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/reset"
-            element={
-              <motion.div {...pageTransition}>
-                <ResetPassword />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/books"
-            element={
-              <motion.div {...pageTransition}>
-                {token ? <Books /> : <Navigate to="/login" />}
-              </motion.div>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <motion.div {...pageTransition}>
-                {token ? <Profile /> : <Navigate to="/login" />}
-              </motion.div>
-            }
-          />
-          <Route
-            path="/community"
-            element={
-              <motion.div {...pageTransition}>
-                <Community />
-              </motion.div>
-            }
-          />
-          <Route
-            path="/settings"
-            element={
-              <motion.div {...pageTransition}>
-                {token ? <Settings /> : <Navigate to="/login" />}
-              </motion.div>
-            }
-          />
+          <Route path="/home" element={
+            <motion.div {...pageTransition}>
+              <Home />
+            </motion.div>
+          } />
+          <Route path="/books" element={
+            <motion.div {...pageTransition}>
+              {token ? <Books /> : <Navigate to="/login" />}
+            </motion.div>
+          } />
+          <Route path="/genre/:name" element={
+            <motion.div {...pageTransition}>
+              <GenrePage />
+            </motion.div>
+          } />
+          <Route path="/profile" element={
+            <motion.div {...pageTransition}>
+              {token ? <Profile /> : <Navigate to="/login" />}
+            </motion.div>
+          } />
+          <Route path="/community" element={
+            <motion.div {...pageTransition}>
+              <Community />
+            </motion.div>
+          } />
+          <Route path="/settings" element={
+            <motion.div {...pageTransition}>
+              {token ? <Settings /> : <Navigate to="/login" />}
+            </motion.div>
+          } />
+          <Route path="/about" element={
+            <motion.div {...pageTransition}>
+              <About />
+            </motion.div>
+          } />
+          <Route path="/contact" element={
+            <motion.div {...pageTransition}>
+              <Contact />
+            </motion.div>
+          } />
+          <Route path="/login" element={
+            <motion.div {...pageTransition}>
+              <Login />
+            </motion.div>
+          } />
+          <Route path="/signup" element={
+            <motion.div {...pageTransition}>
+              <Signup />
+            </motion.div>
+          } />
+          <Route path="/forgot" element={
+            <motion.div {...pageTransition}>
+              <ForgotPassword />
+            </motion.div>
+          } />
+          <Route path="/reset" element={
+            <motion.div {...pageTransition}>
+              <ResetPassword />
+            </motion.div>
+          } />
           <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
       </AnimatePresence>
@@ -164,7 +147,11 @@ function AnimatedRoutes() {
 function App() {
   return (
     <Router>
-      <AnimatedRoutes />
+      <ErrorBoundary>
+        <ToastProvider>
+          <AnimatedRoutes />
+        </ToastProvider>
+      </ErrorBoundary>
     </Router>
   );
 }

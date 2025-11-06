@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import { ok, created, error as sendError, unauthorized, badRequest } from "../utils/response.js";
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
@@ -12,7 +13,7 @@ export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(200).json({ message: "If that email exists, a reset link has been sent." });
+    if (!user) return ok(res, null, "If that email exists, a reset link has been sent.");
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetPasswordToken = resetToken;
@@ -23,9 +24,9 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset?token=${resetToken}`;
 
     // In dev, return token for convenience; in prod, you'd send an email
-    return res.status(200).json({ message: "Reset link generated.", resetUrl: isProd ? undefined : resetUrl, resetToken: isProd ? undefined : resetToken });
+    return ok(res, { resetUrl: isProd ? undefined : resetUrl, resetToken: isProd ? undefined : resetToken }, "Reset link generated.");
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return sendError(res, 500, error.message || 'Internal Server Error');
   }
 };
 
@@ -35,16 +36,16 @@ export const resetPassword = async (req, res) => {
   const { token, password } = req.body;
   try {
     const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: new Date() } });
-    if (!user) return res.status(400).json({ message: "Invalid or expired reset token" });
+    if (!user) return badRequest(res, "Invalid or expired reset token");
 
     user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save();
 
-    return res.status(200).json({ message: "Password has been reset", token: generateToken(user.id), name: user.name });
+    return ok(res, { token: generateToken(user.id), name: user.name }, "Password has been reset");
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return sendError(res, 500, error.message || 'Internal Server Error');
   }
 };
 
@@ -59,7 +60,7 @@ export const registerUser = async (req, res) => {
     const bypass = process.env.RECAPTCHA_BYPASS === 'true' || !isProd;
     if (process.env.RECAPTCHA_SECRET && !bypass) {
       if (!recaptchaToken) {
-        return res.status(400).json({ message: "reCAPTCHA required" });
+        return badRequest(res, "reCAPTCHA required");
       }
       try {
         const doFetch = typeof fetch === 'function' ? fetch : (await import('node-fetch')).default;
@@ -74,11 +75,11 @@ export const registerUser = async (req, res) => {
         const data = await r.json();
         if (!data.success) {
           console.warn("[reCAPTCHA] verification failed:", data);
-          return res.status(400).json({ message: "reCAPTCHA verification failed" });
+          return badRequest(res, "reCAPTCHA verification failed");
         }
       } catch (e) {
         console.error("[reCAPTCHA] verification error:", e?.message || e);
-        return res.status(500).json({ message: "reCAPTCHA verification error" });
+        return sendError(res, 500, "reCAPTCHA verification error");
       }
     } else {
       // In non-production or when bypass enabled, accept a dummy token for logging
@@ -89,17 +90,17 @@ export const registerUser = async (req, res) => {
 
     const userExists = await User.findOne({ email });
     if (userExists)
-      return res.status(400).json({ message: "User already exists" });
+      return badRequest(res, "User already exists");
 
     const user = await User.create({ name, email, password });
-    res.status(201).json({
+    return created(res, {
       _id: user.id,
       name: user.name,
       email: user.email,
       token: generateToken(user.id),
-    });
+    }, 'User registered');
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendError(res, 500, error.message || 'Internal Server Error');
   }
 };
 
@@ -111,16 +112,16 @@ export const loginUser = async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (user && (await user.matchPassword(password))) {
-      res.json({
+      return ok(res, {
         _id: user.id,
         name: user.name,
         email: user.email,
         token: generateToken(user.id),
-      });
+      }, 'Login success');
     } else {
-      res.status(401).json({ message: "Invalid email or password" }); //hhhhhhh
+      return unauthorized(res, "Invalid email or password");
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return sendError(res, 500, error.message || 'Internal Server Error');
   }
 };
