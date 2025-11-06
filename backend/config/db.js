@@ -20,10 +20,7 @@ const connectDB = async () => {
       throw new Error("MongoDB URI is missing");
     }
 
-    const conn = await mongoose.connect(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const conn = await mongoose.connect(uri);
 
     console.log(`MongoDB connected: ${conn.connection.host}`);
   } catch (err) {

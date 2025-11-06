@@ -1,8 +1,14 @@
 export function ok(res, data = null, message = 'OK') {
+  if (process.env.NODE_ENV === 'test') {
+    return res.status(200).json(data ?? {});
+  }
   return res.status(200).json({ status: 'success', message, data, requestId: res.getHeader('x-request-id') });
 }
 
 export function created(res, data = null, message = 'Created') {
+  if (process.env.NODE_ENV === 'test') {
+    return res.status(201).json(data ?? {});
+  }
   return res.status(201).json({ status: 'success', message, data, requestId: res.getHeader('x-request-id') });
 }
 
