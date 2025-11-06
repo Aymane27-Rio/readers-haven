@@ -12,8 +12,8 @@ services:
 
   auth-service:
     build:
-      context: .
-      dockerfile: services/auth-service/Dockerfile
+      context: ./services/auth-service
+      dockerfile: Dockerfile
     container_name: auth-service
     ports:
       - "5001:5001"
@@ -23,13 +23,17 @@ services:
       - MONGO_URI=mongodb://mongo:27017/readers-haven
       - JWT_SECRET=${JWT_SECRET:-dev-secret-change-me}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
-      - OAUTH_CALLBACK_BASE=http://gateway:8080
+      - OAUTH_CALLBACK_BASE=http://localhost:8080
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     depends_on:
       mongo:
         condition: service_healthy
 
   gateway:
-    build: ./gateway
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
     container_name: gateway
     environment:
       - GATEWAY_PORT=8080

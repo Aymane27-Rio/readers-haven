@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { randomUUID } from 'crypto';
-import { logger } from '../shared/libs/logger.js';
+import logger from '../shared/libs/logger.js';
 
 dotenv.config();
 
@@ -51,9 +51,15 @@ app.use('/api/books', proxyTo(BOOKS_SERVICE_URL));
 app.use('/api/quotes', proxyTo(QUOTES_SERVICE_URL));
 app.use('/api/orders', proxyTo(ORDERS_SERVICE_URL));
 
-// OAuth passthroughs (keep working Google flow)
-app.use('/auth/google', proxyTo(AUTH_SERVICE_URL));
-app.use('/auth/google/callback', proxyTo(AUTH_SERVICE_URL));
+// OAuth passthroughs (preserve full path to auth-service)
+app.use(createProxyMiddleware({
+  target: AUTH_SERVICE_URL,
+  changeOrigin: true,
+  filter: (pathname) => pathname.startsWith('/auth/google'),
+  onProxyReq(proxyReq, req) {
+    if (req.id) proxyReq.setHeader('x-request-id', req.id);
+  },
+}));
 
 // Static uploads passthrough
 app.use('/uploads', proxyTo(AUTH_SERVICE_URL));

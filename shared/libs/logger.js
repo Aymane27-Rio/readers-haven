@@ -1,13 +1,13 @@
-import pino from 'pino';
+// Simple console-based logger (no external deps)
+const levels = { debug: 0, info: 1, warn: 2, error: 3 };
+const currentLevel = levels[process.env.LOG_LEVEL] ?? levels.info;
 
-const level = process.env.LOG_LEVEL || 'info';
+const logger = {
+  debug: (...args) => currentLevel <= levels.debug && console.debug('[DEBUG]', ...args),
+  info: (...args) => currentLevel <= levels.info && console.info('[INFO]', ...args),
+  warn: (...args) => currentLevel <= levels.warn && console.warn('[WARN]', ...args),
+  error: (...args) => currentLevel <= levels.error && console.error('[ERROR]', ...args),
+};
 
-export const logger = pino({
-  level,
-  transport: process.env.NODE_ENV === 'production' ? undefined : {
-    target: 'pino-pretty',
-    options: { colorize: true, translateTime: 'SYS:standard' }
-  }
-});
-
+export { logger };
 export default logger;

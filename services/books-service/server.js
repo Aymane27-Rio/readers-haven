@@ -8,7 +8,8 @@ app.use(express.json());
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'books-service' }));
 
 // Placeholder endpoints; real routes will be extracted later
-app.get('/api/books', (_req, res) => res.json({ status: 'success', data: [] }));
+// Gateway strips /api/books prefix, so handle root path
+app.get('/', (_req, res) => res.json({ status: 'success', data: [], message: 'books-service placeholder' }));
 
 const PORT = parseInt(process.env.PORT || '5002', 10);
 app.listen(PORT, () => console.log(`[books-service] listening on ${PORT}`));
