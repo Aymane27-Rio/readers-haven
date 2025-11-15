@@ -12,7 +12,7 @@ const app = express();
 
 // Config from env with container-name defaults
 const PORT = parseInt(process.env.GATEWAY_PORT || process.env.PORT || '8080', 10);
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://auth-service:5001';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:5000';
 const BOOKS_SERVICE_URL = process.env.BOOKS_SERVICE_URL || AUTH_SERVICE_URL; // keep routed to auth-service for now
 const QUOTES_SERVICE_URL = process.env.QUOTES_SERVICE_URL || AUTH_SERVICE_URL; // keep routed to auth-service for now
 const ORDERS_SERVICE_URL = process.env.ORDERS_SERVICE_URL || 'http://order-service:5004';
