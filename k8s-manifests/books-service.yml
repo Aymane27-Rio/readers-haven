@@ -16,6 +16,7 @@ spec:
       containers:
       - name: books-service
         image: readers-haven-books-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 5002
         env:

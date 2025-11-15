@@ -4,7 +4,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { createProxyMiddleware } from 'http-proxy-middleware';
 import { randomUUID } from 'crypto';
-import logger from '../shared/libs/logger.js';
+// import logger from '../shared/libs/logger.js';
+
+// Simple logger replacement
+const logger = {
+  info: (...args) => console.log('[INFO]', ...args),
+  error: (...args) => console.error('[ERROR]', ...args)
+};
 
 dotenv.config();
 
@@ -12,6 +18,9 @@ const app = express();
 
 // Config from env with container-name defaults
 const PORT = parseInt(process.env.GATEWAY_PORT || process.env.PORT || '8080', 10);
+console.log('DEBUG: process.env.PORT =', process.env.PORT);
+console.log('DEBUG: process.env.GATEWAY_PORT =', process.env.GATEWAY_PORT);
+console.log('DEBUG: parsed PORT =', PORT, 'typeof:', typeof PORT);
 const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:5000';
 const BOOKS_SERVICE_URL = process.env.BOOKS_SERVICE_URL || AUTH_SERVICE_URL; // keep routed to auth-service for now
 const QUOTES_SERVICE_URL = process.env.QUOTES_SERVICE_URL || AUTH_SERVICE_URL; // keep routed to auth-service for now

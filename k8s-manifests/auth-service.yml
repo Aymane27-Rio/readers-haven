@@ -16,6 +16,7 @@ spec:
       containers:
       - name: auth-service
         image: readers-haven-auth-service:latest
+        imagePullPolicy: Never
         ports:
         - containerPort: 5001
         envFrom:
