@@ -18,7 +18,7 @@ spec:
         image: readers-haven-gateway:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 8080
+        - containerPort: 3000
         env:
         - name: PORT
           value: "8080"
@@ -51,8 +51,8 @@ spec:
   selector:
     app: gateway
   ports:
-  - port: 8080
-    targetPort: 8080
+  - port: 3000
+    targetPort: 3000
   type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
@@ -74,4 +74,4 @@ spec:
           service:
             name: gateway
             port:
-              number: 8080
+              number: 3000
