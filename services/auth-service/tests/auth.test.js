@@ -15,8 +15,8 @@ describe("Auth Routes", () => {
         password: "password123"
       });
     expect(res.statusCode).toBe(201);
-    expect(res.body).toHaveProperty("token");
-    token = res.body.token;
+    expect(res.body).toHaveProperty(["data", "token"]);
+    token = res.body.data.token;
   });
 
   it("should log in existing user", async () => {
@@ -27,6 +27,6 @@ describe("Auth Routes", () => {
         password: "password123"
       });
     expect(res.statusCode).toBe(200);
-    expect(res.body).toHaveProperty("token");
+    expect(res.body).toHaveProperty(["data", "token"]);
   });
 });

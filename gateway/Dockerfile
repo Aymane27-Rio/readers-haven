@@ -1,12 +1,19 @@
 FROM node:18
+
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install --production
+# Copy shared observability utilities and install their dependencies
+COPY shared ./shared
+RUN npm install --prefix shared --omit=dev
 
-# Copy application files
-COPY . .
+# Install gateway production dependencies (resolves file: ../shared)
+COPY gateway/package*.json ./gateway/
+RUN npm install --prefix gateway --omit=dev
 
+# Copy gateway source
+COPY gateway ./gateway
+
+WORKDIR /app/gateway
 EXPOSE 3000
-CMD node server.js
+CMD ["node", "server.js"]

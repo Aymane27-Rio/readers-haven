@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { createLogger, initializeTracing, createHttpMetrics } from '../../shared/libs/observability.js';
+import { createLogger, initializeTracing, createHttpMetrics } from 'shared-libs/libs/observability';
 
 const SERVICE_NAME = 'quotes-service';
 const PORT = parseInt(process.env.PORT || '5003', 10);

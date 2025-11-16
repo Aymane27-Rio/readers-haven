@@ -18,7 +18,7 @@ import { requestId } from "./utils/requestId.js";
 import { logger } from "./utils/logger.js";
 import { config } from "./utils/config.js";
 import { ok, error as sendError } from "./utils/response.js";
-import { initializeTracing, createHttpMetrics } from "../../shared/libs/observability.js";
+import { initializeTracing, createHttpMetrics } from "shared-libs/libs/observability";
 
 console.log("MONGO_URI:", process.env.MONGO_URI);
 

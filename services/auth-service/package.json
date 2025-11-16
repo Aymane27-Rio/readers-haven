@@ -39,7 +39,8 @@
     "@opentelemetry/exporter-trace-otlp-http": "^0.55.0",
     "@opentelemetry/auto-instrumentations-node": "^0.55.0",
     "@opentelemetry/resources": "^1.9.0",
-    "@opentelemetry/semantic-conventions": "^1.23.0"
+    "@opentelemetry/semantic-conventions": "^1.23.0",
+    "shared-libs": "file:../../shared"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.5",

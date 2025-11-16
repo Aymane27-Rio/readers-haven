@@ -1,10 +1,21 @@
-import pino from 'pino';
-import promClient from 'prom-client';
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import path from 'path';
+import { createRequire } from 'module';
+
+const cwdPackageJson = path.join(process.cwd(), 'package.json');
+let requireFromApp;
+try {
+  requireFromApp = createRequire(cwdPackageJson);
+} catch {
+  requireFromApp = createRequire(import.meta.url);
+}
+
+const pino = requireFromApp('pino');
+const promClient = requireFromApp('prom-client');
+const { NodeSDK } = requireFromApp('@opentelemetry/sdk-node');
+const { getNodeAutoInstrumentations } = requireFromApp('@opentelemetry/auto-instrumentations-node');
+const { Resource } = requireFromApp('@opentelemetry/resources');
+const { SemanticResourceAttributes } = requireFromApp('@opentelemetry/semantic-conventions');
+const { OTLPTraceExporter } = requireFromApp('@opentelemetry/exporter-trace-otlp-http');
 
 const tracingState = {
   initialized: false,

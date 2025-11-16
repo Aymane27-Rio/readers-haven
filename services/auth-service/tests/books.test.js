@@ -12,7 +12,7 @@ describe("Books Routes", () => {
       .post("/api/auth/register")
       .send({ name: "BookUser", email: "book@example.com", password: "pass123" });
 
-    token = registerRes.body.token;
+    token = registerRes.body.data.token;
   });
 
   it("should create a book", async () => {
@@ -27,7 +27,8 @@ describe("Books Routes", () => {
       });
 
     expect(res.statusCode).toBe(201);
-    bookId = res.body._id;
+    expect(res.body).toHaveProperty(["data", "_id"]);
+    bookId = res.body.data._id;
   });
 
   it("should fetch all user books", async () => {
@@ -36,7 +37,7 @@ describe("Books Routes", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toBe(200);
-    expect(Array.isArray(res.body)).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
   });
 
   it("should delete a book", async () => {
