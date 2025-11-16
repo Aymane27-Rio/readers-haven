@@ -32,11 +32,19 @@ kubectl get ingress -n readers-haven
 echo "Waiting for services to be ready..."
 kubectl wait --for=condition=ready pod --all -n readers-haven --timeout=300s
 
-# 7. Check if Helm is installed (skip for Docker Desktop)
-if ! command -v helm &> /dev/null; then
-    echo "⚠️  Helm not found. Installing Helm..."
-    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+# 7. Resolve Helm binary
+HELM_BIN=${HELM_BIN:-helm}
+if ! command -v "$HELM_BIN" &> /dev/null; then
+    if [ -x "./helm.exe" ]; then
+        HELM_BIN="./helm.exe"
+    elif [ -x "./helm-tmp/windows-amd64/helm.exe" ]; then
+        HELM_BIN="./helm-tmp/windows-amd64/helm.exe"
+    else
+        echo "❌ Helm binary not found. Please install Helm or set HELM_BIN before running this script."
+        exit 1
+    fi
 fi
+echo "Using Helm binary: $HELM_BIN"
 
 # 8. Enable ingress addon (Docker Desktop has it built-in)
 echo "Enabling ingress controller..."
@@ -48,12 +56,12 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/component=controller
 
 # 9. Add Prometheus Helm repo
 echo "Adding Prometheus Helm repository..."
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+$HELM_BIN repo add prometheus-community https://prometheus-community.github.io/helm-charts
+$HELM_BIN repo update
 
 # 10. Install kube-prometheus-stack
 echo "Installing monitoring stack..."
-helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace \
+$HELM_BIN upgrade --install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace \
   --set grafana.service.type=ClusterIP \
   --set prometheus.service.type=ClusterIP
 

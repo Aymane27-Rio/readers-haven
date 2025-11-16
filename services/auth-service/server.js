@@ -18,10 +18,15 @@ import { requestId } from "./utils/requestId.js";
 import { logger } from "./utils/logger.js";
 import { config } from "./utils/config.js";
 import { ok, error as sendError } from "./utils/response.js";
+import { initializeTracing, createHttpMetrics } from "../../shared/libs/observability.js";
 
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
 connectDB();
+
+const SERVICE_NAME = "auth-service";
+initializeTracing(SERVICE_NAME, logger);
+const { metricsMiddleware, metricsHandler } = createHttpMetrics(SERVICE_NAME);
 
 const app = express();
 // Core hardening & transport
@@ -33,6 +38,7 @@ app.use(rateLimit({ windowMs: 60 * 1000, max: 120 }));
 app.use(express.json());
 // Basic request logging
 app.use((req, _res, next) => { logger.info({ id: req.id, method: req.method, url: req.url }); next(); });
+app.use(metricsMiddleware);
 app.use(passport.initialize());
 configurePassport();
 
@@ -47,10 +53,7 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'up', service: 'backend-api' });
 });
 
-app.get('/metrics', (_req, res) => {
-  res.setHeader('Content-Type', 'text/plain');
-  res.send(`# HELP backend_requests_total Total number of HTTP requests\n# TYPE backend_requests_total counter\nbackend_requests_total{service="backend-api"} 1\n`);
-});
+app.get('/metrics', metricsHandler);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
