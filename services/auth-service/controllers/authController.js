@@ -3,8 +3,14 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { ok, created, error as sendError, unauthorized, badRequest } from "../utils/response.js";
 
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'test' ? 'test-secret' : null);
+
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "30d" });
+  if (!JWT_SECRET) {
+    throw new Error('JWT secret not configured');
+  }
+
+  return jwt.sign({ id }, JWT_SECRET, { expiresIn: "30d" });
 };
 
 // @desc Start password reset (request email)
