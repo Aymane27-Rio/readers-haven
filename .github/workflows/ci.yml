@@ -19,7 +19,7 @@ env:
     order-service
     inventory-service
     auth-service
-    gateway
+  GATEWAY_DIR: gateway
 
 jobs:
   test:
@@ -32,6 +32,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          cache-dependency-path: |
+            shared/package-lock.json
+            services/*/package-lock.json
+            gateway/package-lock.json
 
       - name: Install shared dependencies
         working-directory: shared
@@ -39,19 +43,27 @@ jobs:
 
       - name: Install service dependencies
         run: |
-          for svc in ${{ env.SERVICES }}; do
+          set -e
+          while read -r svc; do
+            if [ -z "$svc" ]; then continue; fi
+            echo "Installing dependencies for $svc"
             (cd services/$svc && npm ci)
-          done
+          done <<< "${SERVICES}"
 
       - name: Install gateway dependencies
-        if: ${{ contains(env.SERVICES, 'gateway') }}
-        working-directory: gateway
+        working-directory: ${{ env.GATEWAY_DIR }}
         run: npm ci
 
       - name: Run service tests
         run: |
-          for svc in books-service quotes-service order-service inventory-service auth-service gateway; do
+          set -e
+          while read -r svc; do
+            if [ -z "$svc" ]; then continue; fi
             echo "Running tests for $svc"
-            (cd services/$svc 2>/dev/null || cd gateway && true)
-          done
+            (cd services/$svc && npm test)
+          done <<< "${SERVICES}"
         shell: bash
+
+      - name: Run gateway tests
+        working-directory: ${{ env.GATEWAY_DIR }}
+        run: npm test
