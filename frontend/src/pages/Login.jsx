@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { t } from "../i18n";
-import { API_BASE } from "../services/apiBase.js";
+import { API_BASE, AUTH_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -86,7 +87,7 @@ export default function Login() {
                 aria-label={showPwd ? t('auth.hide_password') || 'Hide password' : t('auth.show_password') || 'Show password'}
                 title={showPwd ? (t('auth.hide_password') || 'Hide password') : (t('auth.show_password') || 'Show password')}
               >
-                {showPwd ? '🙈' : '👁️'}
+                {showPwd ? <FiEyeOff size={18} /> : <FiEye size={18} />}
               </button>
             </div>
           </div>
@@ -121,7 +122,7 @@ export default function Login() {
           <button
             type="button"
             className="btn-social btn-google"
-            onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+            onClick={() => { window.location.href = `${AUTH_BASE}/auth/google`; }}
             aria-label={t('auth.continue_google')}
           >
             {/* Google G icon */}

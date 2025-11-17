@@ -24,6 +24,16 @@ export const upload = multer({
   limits: { fileSize: 4 * 1024 * 1024 }, // 4MB
 });
 
+export const avatarUpload = (req, res, next) => {
+  upload.single("avatar")(req, res, (err) => {
+    if (err) {
+      const message = err.message || "Failed to upload avatar";
+      return badRequest(res, message, err.code ? { code: err.code } : undefined);
+    }
+    next();
+  });
+};
+
 export const getMe = async (req, res) => {
   const u = req.user;
   return ok(res, {

@@ -3,7 +3,8 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { ok, created, error as sendError, unauthorized, badRequest } from "../utils/response.js";
 
-const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'test' ? 'test-secret' : null);
+const fallbackSecret = process.env.NODE_ENV === 'production' ? null : 'dev-secret';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'test' ? 'test-secret' : fallbackSecret);
 
 const generateToken = (id) => {
   if (!JWT_SECRET) {

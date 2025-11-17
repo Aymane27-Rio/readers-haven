@@ -7,6 +7,7 @@ import { genreData } from "../data/genres.js";
 import LoadingSkeleton from "../components/LoadingSkeleton.jsx";
 import { useToast } from "../components/ToastProvider.jsx";
 import { API_BASE } from "../services/apiBase.js";
+import { LuBookMarked } from "react-icons/lu";
 
 const STATUS_OPTIONS = [
   { value: "all", label: "All" },
@@ -174,8 +175,11 @@ function Books() {
       <main className="page-container pattern-bg section centered">
         <div className="wrap">
           <div className="vintage-card vintage-card--padded">
-            <h1 className="brand-title brand-title--lg" style={{ textAlign: "center", marginBottom: "1rem" }}>
-              {showGenresFirst ? '📚 Catalog Results' : '📚 My Book Collection'}
+            <h1 className="brand-title brand-title--lg" style={{ textAlign: "center", marginBottom: "1rem", display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '.5rem', flexWrap: 'wrap' }}>
+              <span aria-hidden="true" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                <LuBookMarked size={32} />
+              </span>
+              <span>{showGenresFirst ? 'Catalog Results' : 'My Book Collection'}</span>
               {q && (
                 <span className="badge" title="Results count">
                   {displayCount}

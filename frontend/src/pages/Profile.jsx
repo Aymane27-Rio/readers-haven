@@ -8,7 +8,15 @@ import { useToast } from "../components/ToastProvider.jsx";
 export default function Profile() {
   const token = React.useMemo(() => localStorage.getItem("token") || sessionStorage.getItem("token"), []);
   const { notify } = useToast();
-  const [name, setName] = React.useState("");
+  const storedName = React.useMemo(() => {
+    try {
+      return localStorage.getItem("name") || sessionStorage.getItem("name") || "";
+    } catch (_) {
+      return "";
+    }
+  }, []);
+
+  const [name, setName] = React.useState(storedName);
   const [username, setUsername] = React.useState("");
   const [bio, setBio] = React.useState("");
   const [location, setLocation] = React.useState("");
@@ -30,7 +38,8 @@ export default function Profile() {
   const [emailUpdates, setEmailUpdates] = React.useState(true);
   const [showShelvesPublic, setShowShelvesPublic] = React.useState(true);
 
-  const first = name ? name.split(" ")[0] : "there";
+  const displayName = name?.trim() || storedName?.trim() || "Reader";
+  const first = displayName.split(" ")[0] || displayName;
 
   const getPayload = (d) => (d && typeof d === 'object' && 'status' in d && 'data' in d ? d.data : d);
 
@@ -38,7 +47,7 @@ export default function Profile() {
   React.useEffect(() => {
     (async () => {
       try {
-        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await fetchJson(`${API_BASE}/profile`, { headers: { Authorization: `Bearer ${token}` } });
           setName(data.name || "");
           setUsername(data.username || "");
           setBio(data.bio || "");
@@ -164,7 +173,7 @@ export default function Profile() {
     form.append("avatar", file);
     setUploading(true);
     try {
-      const data = await fetchJson(`${API_BASE}/users/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+      const data = await fetchJson(`${API_BASE}/profile/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
       const url = data.avatarUrl?.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
       setAvatarUrl(url);
       localStorage.setItem("avatarUrl", url);
@@ -186,7 +195,7 @@ export default function Profile() {
     setError("");
     setSaving(true);
     try {
-      const data = await fetchJson(`${API_BASE}/users`, {
+      const data = await fetchJson(`${API_BASE}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name, username, bio, location })
@@ -210,7 +219,7 @@ export default function Profile() {
     setError("");
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/users`, {
+      const res = await fetch(`${API_BASE}/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ avatarUrl: "" })
@@ -253,7 +262,7 @@ export default function Profile() {
                   )}
                 </div>
                 <div style={{ minWidth: 240, textAlign: 'left' }}>
-                  <h1 className="brand-title" style={{ margin: 0 }}>{name || 'Your Name'}</h1>
+                  <h1 className="brand-title" style={{ margin: 0 }}>{displayName}</h1>
                   {username && <div className="form-meta" style={{ marginTop: 4, marginLeft: 0, padding: 0, textIndent: 0, display: 'block' }}>@{username}</div>}
                   {location && <div className="form-meta" style={{ marginTop: 4, marginLeft: 0, padding: 0, textIndent: 0, display: 'block' }}>{location}</div>}
                 </div>

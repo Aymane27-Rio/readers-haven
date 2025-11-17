@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
 import { useNavigate, Link } from "react-router-dom";
 import { t } from "../i18n.js";
+import { GiSpellBook, GiTestTubes, GiGreekTemple, GiThink, GiDragonSpiral } from "react-icons/gi";
 
 export default function Home() {
   const [quote, setQuote] = useState("");
@@ -16,11 +17,11 @@ export default function Home() {
   ];
 
   const categories = [
-    { name: "Fiction", icon: "📖", genre: "Fiction" },
-    { name: "Science", icon: "🔬", genre: "Science" },
-    { name: "History", icon: "🏺", genre: "History" },
-    { name: "Philosophy", icon: "💭", genre: "Philosophy" },
-    { name: "Fantasy", icon: "🐉", genre: "Fantasy" },
+    { name: "Fiction", Icon: GiSpellBook, genre: "Fiction" },
+    { name: "Science", Icon: GiTestTubes, genre: "Science" },
+    { name: "History", Icon: GiGreekTemple, genre: "History" },
+    { name: "Philosophy", Icon: GiThink, genre: "Philosophy" },
+    { name: "Fantasy", Icon: GiDragonSpiral, genre: "Fantasy" },
   ];
 
   useEffect(() => {
@@ -59,7 +60,9 @@ export default function Home() {
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && navigate(`/genre/${cat.genre}`)}
                 >
-                  <div className="tile__icon">{cat.icon}</div>
+                  <div className="tile__icon" aria-hidden="true">
+                    <cat.Icon size={36} />
+                  </div>
                   <p className="brand-title" style={{ fontSize: "1rem" }}>{cat.name}</p>
                 </div>
               ))}

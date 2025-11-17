@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { API_BASE } from "../services/apiBase.js";
+import { API_BASE, AUTH_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
-const API_URL = "http://localhost:5000/api/auth/register"; // adjust if backend runs elsewhere
+const REGISTER_URL = `${API_BASE}/auth/register`;
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -42,31 +44,27 @@ export default function Signup() {
     }
 
     try {
-      const res = await fetch(API_URL, {
+      const data = await fetchJson(REGISTER_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: formData.name, email: formData.email, password: formData.password, recaptchaToken }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        try { if (SITE_KEY && window.grecaptcha) window.grecaptcha.reset(); } catch (_) {}
-        // persist token and name so navbar updates immediately
-        if (data?.token) {
-          try { localStorage.setItem("token", data.token); window.dispatchEvent(new Event('auth:token')); } catch (_) {}
-        }
-        if (data?.name) {
-          try { localStorage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
-        }
-        // Always take user to main page after successful signup
-        navigate("/home");
-      } else {
-        const data = await res.json();
-        setError(data.message || "Something went wrong!");
+      try { if (SITE_KEY && window.grecaptcha) window.grecaptcha.reset(); } catch (_) {}
+
+      if (!data?.token) {
+        throw new Error("Registration response missing token");
       }
+
+      try { localStorage.setItem("token", data.token); window.dispatchEvent(new Event('auth:token')); } catch (_) {}
+      if (data?.name) {
+        try { localStorage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+      }
+
+      navigate("/home");
     } catch (err) {
       console.error(err);
-      setError("Network error — please try again.");
+      setError(err.message || "Network error — please try again.");
     }
   };
 
@@ -117,7 +115,7 @@ export default function Signup() {
               aria-label={showPwd ? 'Hide password' : 'Show password'}
               title={showPwd ? 'Hide password' : 'Show password'}
             >
-              {showPwd ? '🙈' : '👁️'}
+              {showPwd ? <FiEyeOff size={18} /> : <FiEye size={18} />}
             </button>
           </div>
 
@@ -138,7 +136,7 @@ export default function Signup() {
               aria-label={showConfirm ? 'Hide password' : 'Show password'}
               title={showConfirm ? 'Hide password' : 'Show password'}
             >
-              {showConfirm ? '🙈' : '👁️'}
+              {showConfirm ? <FiEyeOff size={18} /> : <FiEye size={18} />}
             </button>
           </div>
 
@@ -159,7 +157,7 @@ export default function Signup() {
           <button
             type="button"
             className="btn-social btn-google"
-            onClick={() => { window.location.href = `${API_BASE}/auth/google`; }}
+            onClick={() => { window.location.href = `${AUTH_BASE}/auth/google`; }}
             aria-label="Continue with Google"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.989h10.5c.1.56.15 1.14.15 1.74 0 6.09-4.09 10.41-10.65 10.41A11.85 11.85 0 0 1 0 12 11.85 11.85 0 0 1 12 0c3.2 0 5.88 1.17 7.9 3.07l-3.2 3.02C15.5 4.94 13.92 4.3 12 4.3 8.23 4.3 5.1 7.45 5.1 11.2s3.13 6.9 6.9 6.9c3.5 0 5.6-2 5.85-4.78H12v-1.33z"/></svg>
