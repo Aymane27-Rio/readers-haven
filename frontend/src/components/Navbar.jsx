@@ -83,6 +83,21 @@ export default function Navbar() {
     navigate("/login");
   };
 
+  const avatarShellStyle = {
+    width: 32,
+    height: 32,
+    borderRadius: '9999px',
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: avatarUrl ? 'transparent' : 'rgba(148,163,184,0.25)',
+    color: '#1f2937',
+    fontWeight: 700,
+    overflow: 'hidden',
+    boxShadow: avatarUrl ? '0 2px 8px rgba(15,23,42,0.08)' : 'none',
+    transition: 'box-shadow 150ms ease'
+  };
+
   return (
     // Goodreads-like header: full-width beige, left brand, centered search, right links & auth
     <header className="gr-nav" role="banner">
@@ -132,21 +147,22 @@ export default function Navbar() {
                 <button
                   aria-haspopup="menu"
                   aria-expanded={menuOpen}
-                  className="gr-link"
+                  className="gr-link gr-link--avatar"
                   onClick={() => setMenuOpen((v) => !v)}
                   title={name || 'Profile'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem' }}
                 >
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" style={{ width: 32, height: 32, borderRadius: '9999px', objectFit: 'cover' }} />
-                  ) : (
-                    <span style={{
-                      width: 32, height: 32, borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                      background: 'transparent', color: '#333', fontWeight: 700
-                    }}>
-                      {(name || 'U').trim().charAt(0).toUpperCase()}
-                    </span>
-                  )}
+                  <span style={avatarShellStyle}>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      (name || 'U').trim().charAt(0).toUpperCase()
+                    )}
+                  </span>
                 </button>
                 {menuOpen && (
                   <div

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
+import { LuChevronRight } from "react-icons/lu";
 
 // Simple, accessible breadcrumbs. Adapts to current route.
 export default function Breadcrumbs() {
@@ -17,19 +18,24 @@ export default function Breadcrumbs() {
   if (trail.length === 0) return null;
 
   return (
-    <nav aria-label="Breadcrumb" className="wrap" style={{ marginTop: ".5rem", marginBottom: ".25rem" }}>
-      <ol style={{ listStyle: "none", display: "flex", gap: ".4rem", padding: 0, margin: 0 }}>
-        <li><Link className="gr-link" to="/home">Home</Link></li>
-        {trail.map((c, idx) => (
-          <li key={c.to} style={{ display: "inline-flex", alignItems: "center", gap: ".4rem" }}>
-            <span aria-hidden>›</span>
-            {idx === trail.length - 1 ? (
-              <span className="tagline" aria-current="page">{c.label}</span>
-            ) : (
-              <Link className="gr-link" to={c.to}>{c.label}</Link>
-            )}
-          </li>
-        ))}
+    <nav aria-label="Breadcrumb" className="wrap breadcrumbs">
+      <ol className="breadcrumbs__list">
+        <li className="breadcrumbs__item">
+          <Link className="breadcrumbs__link" to="/home">Home</Link>
+        </li>
+        {trail.map((c, idx) => {
+          const isLast = idx === trail.length - 1;
+          return (
+            <li className="breadcrumbs__item" key={c.to}>
+              <span className="breadcrumbs__icon" aria-hidden="true"><LuChevronRight size={16} /></span>
+              {isLast ? (
+                <span className="breadcrumbs__current" aria-current="page">{c.label}</span>
+              ) : (
+                <Link className="breadcrumbs__link" to={c.to}>{c.label}</Link>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </nav>
   );

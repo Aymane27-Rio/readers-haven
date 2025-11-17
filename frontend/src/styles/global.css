@@ -63,6 +63,10 @@ html[lang="zgh"] body { font-family: 'Noto Sans Tifinagh', var(--font-body); }
   --border: #e8dfd2;
   --accent: #b87333;
   --link: #007f8a;
+  --nav-bg: rgba(255, 255, 255, 0.94);
+  --nav-border: rgba(214, 175, 142, 0.55);
+  --nav-shadow: 0 16px 30px rgba(27, 23, 20, 0.08);
+  --nav-active: #1c1e21;
   /* Motion & rhythm */
   --ease-out: cubic-bezier(.2,.7,.3,1);
   --dur-fast: .18s;
@@ -256,7 +260,7 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible, input:focu
    - Transparent parchment blend, gold border, soft glow on hover, active link highlight
 */
 /* Goodreads-like structure, Facebook-like styling (CSS-only change) */
-.gr-nav { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: #ffffff; border-bottom: 1px solid #e6e6e6; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.gr-nav { position: sticky; top: 0; z-index: 60; background: transparent; border-bottom: 1px solid rgba(214, 175, 142, 0.4); box-shadow: 0 12px 40px rgba(82, 53, 29, 0.12); }
 .gr-nav__inner { height: 64px; display: grid; grid-template-columns: 220px 1fr auto; align-items: center; gap: 1rem; width: min(1200px, 96%); margin: 0 auto; }
 .gr-brand { font-family: Georgia, var(--font-title); font-weight: 700; color: var(--terracotta); font-size: 1.2rem; letter-spacing: .2px; }
 .gr-brand a { color: var(--terracotta); text-decoration: none; }
@@ -264,6 +268,8 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible, input:focu
 .gr-links { display: flex; gap: .9rem; justify-content: flex-end; align-items: center; }
 .gr-link { position: relative; color: #333; font-family: "Poppins", Arial, sans-serif; font-weight: 500; padding: .4rem .6rem; border-radius: 8px; transition: background-color .2s ease, color .2s ease; }
 .gr-link:hover { background: #f0f2f5; }
+.gr-link--avatar { padding: .2rem; border-radius: 999px; }
+.gr-link--avatar:hover { background: transparent; }
 .gr-link.is-active { background: #e8eef9; color: #1c1e21; }
 .gr-link.is-active::after { content: ""; position: absolute; left: 10%; right: 10%; bottom: 4px; height: 2px; background: var(--terracotta); border-radius: 2px; opacity: .85; }
 .gr-link:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 2px; border-radius: 8px; }
@@ -299,6 +305,15 @@ button:focus-visible, a:focus-visible, [role="button"]:focus-visible, input:focu
 
 /* Small badge (e.g., results count) */
 .badge { display: inline-flex; align-items: center; justify-content: center; gap: .25rem; margin-left: .5rem; padding: .15rem .5rem; font-size: .8rem; font-weight: 700; color: #1c1e21; background: #f0f2f5; border: 1px solid #dedede; border-radius: 9999px; }
+
+/* Breadcrumbs */
+.breadcrumbs { margin-top: .75rem; margin-bottom: .35rem; }
+.breadcrumbs__list { list-style: none; display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .55rem; margin: 0; border-radius: 999px; background: rgba(255,255,255,0.8); border: 1px solid rgba(214,175,142,0.45); box-shadow: 0 6px 14px rgba(0,0,0,0.08); backdrop-filter: saturate(150%) blur(8px); }
+.breadcrumbs__item { display: inline-flex; align-items: center; gap: .25rem; color: var(--muted); font-size: .92rem; }
+.breadcrumbs__link { color: var(--link); font-weight: 600; }
+.breadcrumbs__link:hover { text-decoration: underline; }
+.breadcrumbs__icon { display: inline-flex; align-items: center; justify-content: center; color: rgba(148,116,86,0.85); }
+.breadcrumbs__current { font-weight: 600; color: var(--wood); }
 
 /* Skeleton shimmer for loading states */
 @keyframes shimmer { 0% { background-position: -468px 0; } 100% { background-position: 468px 0; } }
