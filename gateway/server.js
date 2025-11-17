@@ -21,7 +21,7 @@ app.use(express.json());
 app.use(morgan('combined'));
 app.use(metricsMiddleware);
 
-const proxy = createProxyMiddleware({
+const createProxy = () => createProxyMiddleware({
   target: BACKEND_URL,
   changeOrigin: true,
   logProvider: () => ({
@@ -31,7 +31,6 @@ const proxy = createProxyMiddleware({
     warn: (...args) => logger.warn({ msg: 'proxy', args }),
     error: (...args) => logger.error({ msg: 'proxy', args }),
   }),
-  pathRewrite: { '^/api': '' },
 });
 
 app.get('/health', (_req, res) => {
@@ -40,7 +39,8 @@ app.get('/health', (_req, res) => {
 
 app.get('/metrics', metricsHandler);
 
-app.use('/api', proxy);
+app.use('/api', createProxy());
+app.use('/auth', createProxy());
 
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', service: SERVICE_NAME });

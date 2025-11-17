@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
 import { t } from "../i18n";
 import { API_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,22 +17,26 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/login", {
-        email,
-        password,
+      const data = await fetchJson(`${API_BASE}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
       });
 
-      // Persist auth depending on Remember Me
-      const storage = remember ? localStorage : sessionStorage;
-      storage.setItem("token", res.data.token);
-      if (res.data?.name) {
-        try { storage.setItem("name", res.data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+      if (!data?.token) {
+        throw new Error("Login response missing token");
       }
+
+      const storage = remember ? localStorage : sessionStorage;
+      storage.setItem("token", data.token);
+      if (data?.name) {
+        try { storage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+      }
+
       try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
-      console.log("✅ Login success, navigating...");
       navigate("/home");
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid credentials");
+      setError(err.message || "Invalid credentials");
     }
   };
 

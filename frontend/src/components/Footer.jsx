@@ -5,7 +5,7 @@ export default function Footer() {
     // Themed footer with gold top border and soft parchment gradient
     <footer className="vintage-footer">
       <p>
-        Made with ❤️ by <strong>Aymane</strong> | {new Date().getFullYear()}
+        Made with ❤️ by <strong>Aymane &amp; Abdelilah</strong> | {new Date().getFullYear()}
       </p>
     </footer>
   );

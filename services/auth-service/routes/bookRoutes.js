@@ -1,5 +1,6 @@
 import express from "express";
-import { getBooks, addBook, deleteBook } from "../controllers/bookController.js";
+import { getBooks, addBook, deleteBook, updateBook } from "../controllers/bookController.js";
+
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -9,6 +10,7 @@ router.route("/")
   .post(protect, addBook);
 
 router.route("/:id")
+  .put(protect, updateBook)
   .delete(protect, deleteBook);
 
 export default router;
