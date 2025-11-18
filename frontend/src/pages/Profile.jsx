@@ -48,20 +48,20 @@ export default function Profile() {
     (async () => {
       try {
         const data = await fetchJson(`${API_BASE}/profile`, { headers: { Authorization: `Bearer ${token}` } });
-          setName(data.name || "");
-          setUsername(data.username || "");
-          setBio(data.bio || "");
-          setLocation(data.location || "");
-          if (data.avatarUrl) {
-            const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
-            setAvatarUrl(url);
-            localStorage.setItem("avatarUrl", url);
-          }
-          if (data.name) { localStorage.setItem("name", data.name); try { window.dispatchEvent(new Event('auth:name')); } catch(_) {} }
-          // decide initial mode: if user has basic info, show view
-          setMode((data.name || data.username || data.bio || data.location) ? 'view' : 'edit');
-        
-      } catch (_) {}
+        setName(data.name || "");
+        setUsername(data.username || "");
+        setBio(data.bio || "");
+        setLocation(data.location || "");
+        if (data.avatarUrl) {
+          const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
+          setAvatarUrl(url);
+          localStorage.setItem("avatarUrl", url);
+        }
+        if (data.name) { localStorage.setItem("name", data.name); try { window.dispatchEvent(new Event('auth:name')); } catch (_) { } }
+        // decide initial mode: if user has basic info, show view
+        setMode((data.name || data.username || data.bio || data.location) ? 'view' : 'edit');
+
+      } catch (_) { }
     })();
   }, [token]);
 
@@ -72,12 +72,12 @@ export default function Profile() {
       if (s.theme) setTheme(s.theme);
       if (typeof s.emailUpdates === 'boolean') setEmailUpdates(s.emailUpdates);
       if (typeof s.showShelvesPublic === 'boolean') setShowShelvesPublic(s.showShelvesPublic);
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   const saveSettings = () => {
     const s = { theme, emailUpdates, showShelvesPublic };
-    try { localStorage.setItem('settings', JSON.stringify(s)); setStatus('Settings saved'); setTimeout(() => setStatus(''), 1200); } catch (_) {}
+    try { localStorage.setItem('settings', JSON.stringify(s)); setStatus('Settings saved'); setTimeout(() => setStatus(''), 1200); } catch (_) { }
   };
 
   // Load user's quotes
@@ -87,7 +87,7 @@ export default function Profile() {
       try {
         const data = await fetchJson(`${API_BASE}/quotes`, { headers: { Authorization: `Bearer ${token}` } });
         setQuotes(data);
-      } catch (_) {}
+      } catch (_) { }
     })();
   }, [token]);
 
@@ -102,12 +102,12 @@ export default function Profile() {
         body: JSON.stringify({ text: quoteText, author: quoteAuthor })
       });
       setQuotes((prev) => [q, ...prev]);
-        setQuoteText("");
-        setQuoteAuthor("");
-        setStatus("Quote added");
-        setTimeout(() => setStatus(""), 1200);
-        notify("Quote added");
-      
+      setQuoteText("");
+      setQuoteAuthor("");
+      setStatus("Quote added");
+      setTimeout(() => setStatus(""), 1200);
+      notify("Quote added");
+
     } catch (_) {
       setError("Network error while adding quote");
       notify("Failed to add quote", "error");
@@ -133,15 +133,15 @@ export default function Profile() {
       try {
         const data = await fetchJson(`${API_BASE}/books`, { headers: { Authorization: `Bearer ${token}` } });
         setBooks(data);
-          const counts = { toRead: 0, currentlyReading: 0, read: 0 };
-          data.forEach((b) => {
-            const s = (b.status || "to-read").toLowerCase();
-            if (s === "to-read") counts.toRead += 1;
-            else if (s === "currently-reading") counts.currentlyReading += 1;
-            else if (s === "read") counts.read += 1;
-          });
-          setShelves(counts);
-      } catch (_) {}
+        const counts = { toRead: 0, currentlyReading: 0, read: 0 };
+        data.forEach((b) => {
+          const s = (b.status || "to-read").toLowerCase();
+          if (s === "to-read") counts.toRead += 1;
+          else if (s === "currently-reading") counts.currentlyReading += 1;
+          else if (s === "read") counts.read += 1;
+        });
+        setShelves(counts);
+      } catch (_) { }
     })();
   }, [token]);
 
@@ -155,10 +155,10 @@ export default function Profile() {
       if (!e.dataTransfer.files?.length) return;
       await handleFile(e.dataTransfer.files[0]);
     };
-    ["dragenter","dragover","dragleave","drop"].forEach(ev => el.addEventListener(ev, onPrevent));
+    ["dragenter", "dragover", "dragleave", "drop"].forEach(ev => el.addEventListener(ev, onPrevent));
     el.addEventListener("drop", onDrop);
     return () => {
-      ["dragenter","dragover","dragleave","drop"].forEach(ev => el.removeEventListener(ev, onPrevent));
+      ["dragenter", "dragover", "dragleave", "drop"].forEach(ev => el.removeEventListener(ev, onPrevent));
       el.removeEventListener("drop", onDrop);
     };
   }, []);
@@ -166,7 +166,7 @@ export default function Profile() {
   const handleFile = async (file) => {
     setError("");
     if (!file) return;
-    const allowed = ["image/jpeg","image/png","image/webp"];
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(file.type)) { setError("Only JPG, PNG, WEBP allowed"); return; }
     if (file.size > 4 * 1024 * 1024) { setError("Image too large (max 4MB)"); return; }
     const form = new FormData();
@@ -200,12 +200,12 @@ export default function Profile() {
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name, username, bio, location })
       });
-        if (data?.name) { localStorage.setItem("name", data.name); try { window.dispatchEvent(new Event('auth:name')); } catch(_) {} }
-        setStatus("Profile saved");
-        setTimeout(() => setStatus(""), 1500);
-        setMode('view');
-        notify("Profile saved");
-      
+      if (data?.name) { localStorage.setItem("name", data.name); try { window.dispatchEvent(new Event('auth:name')); } catch (_) { } }
+      setStatus("Profile saved");
+      setTimeout(() => setStatus(""), 1500);
+      setMode('view');
+      notify("Profile saved");
+
     } catch (e) {
       const msg = e?.message || "Failed to save profile";
       setError(msg);
@@ -252,13 +252,11 @@ export default function Profile() {
           {mode === 'view' ? (
             <div className="vintage-card vintage-card--padded" style={{ paddingTop: '1.25rem' }}>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                <div style={{ position: 'relative' }}>
+                <div className="profile-avatar">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" style={{ width: 128, height: 128, borderRadius: '9999px', objectFit: 'cover' }} />
+                    <img src={avatarUrl} alt="Avatar" className="profile-avatar__image" />
                   ) : (
-                    <div style={{ width: 128, height: 128, borderRadius: '9999px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', fontWeight: 700, fontSize: 48 }}>
-                      {(name || 'U').trim().charAt(0).toUpperCase()}
-                    </div>
+                    <span className="profile-avatar__initials">{(name || 'U').trim().charAt(0).toUpperCase()}</span>
                   )}
                 </div>
                 <div style={{ minWidth: 240, textAlign: 'left' }}>
@@ -351,13 +349,13 @@ export default function Profile() {
               <div className="form-row" style={{ justifyContent: 'center' }}>
                 <div ref={dropRef} className="vintage-card" style={{ padding: '.75rem', textAlign: 'center' }}>
                   <div style={{ marginBottom: '.6rem' }}>
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" style={{ width: 96, height: 96, borderRadius: '9999px', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ width: 96, height: 96, borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', fontWeight: 700 }}>
-                        {(name || 'U').trim().charAt(0).toUpperCase()}
-                      </div>
-                    )}
+                    <div className="profile-avatar profile-avatar--md">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="profile-avatar__image" />
+                      ) : (
+                        <span className="profile-avatar__initials">{(name || 'U').trim().charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
                   </div>
                   <input type="file" accept="image/png,image/jpeg,image/webp" onChange={onPickFile} disabled={uploading} />
                   <p className="form-meta" style={{ marginTop: '.4rem' }}>Drag & drop an image here, or pick a file (JPG/PNG/WEBP, max 4MB)</p>
