@@ -169,7 +169,7 @@ export default function Community() {
     <>
       <Navbar />
       <Breadcrumbs />
-      <main className="page-container pattern-bg section centered" style={{ marginTop: "1cm" }}>
+      <main className="page-container pattern-bg section centered" style={{ marginTop: "clamp(1.5rem, 4vh, 3rem)" }}>
         <div className="wrap">
           <section className="vintage-card vintage-card--padded" style={{ marginBottom: "1.25rem", background: "linear-gradient(135deg, rgba(184,115,51,0.12), rgba(30,41,59,0.06))" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: ".85rem" }}>

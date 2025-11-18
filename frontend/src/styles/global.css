@@ -770,7 +770,7 @@ textarea:focus-visible {
 }
 
 .gr-brand {
-  margin-left: -1cm;
+  margin-left: clamp(-0.75rem, -1.5vw, -0.35rem);
 }
 
 @media (max-width: 780px) {

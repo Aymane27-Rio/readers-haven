@@ -67,7 +67,7 @@ export default function Settings() {
     <>
       <Navbar />
       <Breadcrumbs />
-      <main className="page-container pattern-bg section centered" style={{ marginTop: '1cm' }}>
+      <main className="page-container pattern-bg section centered" style={{ marginTop: 'clamp(1.5rem, 4vh, 3rem)' }}>
         <div className="wrap">
           <div className="vintage-card vintage-card--padded">
             <h1 className="brand-title brand-title--lg" style={{ textAlign: 'center', marginBottom: '.5rem' }}>{t('settings.title')}</h1>
