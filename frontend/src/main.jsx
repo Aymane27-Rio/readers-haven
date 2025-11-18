@@ -12,6 +12,7 @@ import GenrePage from "./pages/GenrePage.jsx";
 import Profile from "./pages/Profile.jsx";
 import Community from "./pages/Community.jsx";
 import Settings from "./pages/Settings.jsx";
+import Buy from "./pages/Buy.jsx";
 import ForgotPassword from "./pages/ForgotPassword.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import About from "./pages/About.jsx";
@@ -45,7 +46,7 @@ function AnimatedRoutes() {
         else if (theme2 === 'light') document.documentElement.setAttribute('data-theme', 'light');
         else document.documentElement.removeAttribute('data-theme');
       });
-    } catch (_) {}
+    } catch (_) { }
   }, []);
 
   React.useEffect(() => {
@@ -54,15 +55,15 @@ function AnimatedRoutes() {
     const nm = params.get("name");
     if (tok) {
       localStorage.setItem("token", tok);
-      try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
+      try { window.dispatchEvent(new Event('auth:token')); } catch (_) { }
       // clean the URL (remove token param) without reloading
       const cleanSearch = Array.from(params.entries()).filter(([k]) => k !== 'token');
-      const cleanUrl = location.pathname + (cleanSearch.length ? '?' + cleanSearch.map(([k,v]) => `${k}=${encodeURIComponent(v)}`).join('&') : '');
+      const cleanUrl = location.pathname + (cleanSearch.length ? '?' + cleanSearch.map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&') : '');
       window.history.replaceState({}, '', cleanUrl);
     }
     if (nm) {
       localStorage.setItem("name", nm);
-      try { window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+      try { window.dispatchEvent(new Event('auth:name')); } catch (_) { }
     }
   }, [location]);
 
@@ -85,6 +86,11 @@ function AnimatedRoutes() {
           <Route path="/books" element={
             <motion.div {...pageTransition}>
               {token ? <Books /> : <Navigate to="/login" />}
+            </motion.div>
+          } />
+          <Route path="/buy" element={
+            <motion.div {...pageTransition}>
+              {token ? <Buy /> : <Navigate to="/login" />}
             </motion.div>
           } />
           <Route path="/genre/:name" element={

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Books from "./pages/Books";
+import Buy from "./pages/Buy.jsx";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home.jsx";
@@ -23,6 +24,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Books />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/buy"
+          element={
+            <ProtectedRoute>
+              <Buy />
             </ProtectedRoute>
           }
         />
