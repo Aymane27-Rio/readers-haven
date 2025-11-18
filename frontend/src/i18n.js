@@ -32,9 +32,14 @@ export const dictionaries = {
     ,
     home: {
       welcome: 'Welcome to',
+      tagline: 'Stories, shelves, and community all in one cozy place',
       explore: 'Explore by Category',
+      explore_cta: 'Browse collection',
+      highlights_title: 'Why readers stay inspired here',
+      quote_caption: 'Quote of the day',
       cta_books: 'Go to My Books',
-      cta_start: 'Start Reading'
+      cta_start: 'Start Reading',
+      cta_join: 'Create account'
     },
     genre: {
       books: '{name} Books',
@@ -76,9 +81,14 @@ export const dictionaries = {
     ,
     home: {
       welcome: 'مرحبًا بك في',
+      tagline: 'حكايات ورفوف ومجتمع في مساحة واحدة دافئة',
       explore: 'استكشف حسب الفئة',
+      explore_cta: 'تصفح المجموعة',
+      highlights_title: 'لماذا يبقى القرّاء متحمسين هنا',
+      quote_caption: 'اقتباس اليوم',
       cta_books: 'اذهب إلى كتبي',
-      cta_start: 'ابدأ القراءة'
+      cta_start: 'ابدأ القراءة',
+      cta_join: 'أنشئ حسابًا'
     },
     genre: {
       books: 'كتب {name}',
