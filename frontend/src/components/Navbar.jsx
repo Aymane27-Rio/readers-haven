@@ -122,10 +122,34 @@ export default function Navbar() {
             <span></span>
           </button>
           <nav className={`gr-links ${open ? 'is-open' : ''}`}>
-            <NavLink to="/home" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.home')}</NavLink>
-            <NavLink to="/books" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.books')}</NavLink>
-            <NavLink to="/community" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.community')}</NavLink>
-            <NavLink to="/buy" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.buy')}</NavLink>
+            <NavLink
+              to="/home"
+              className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`}
+              aria-current={({ isActive }) => (isActive ? 'page' : undefined)}
+            >
+              {t('nav.home')}
+            </NavLink>
+            <NavLink
+              to="/books"
+              className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`}
+              aria-current={({ isActive }) => (isActive ? 'page' : undefined)}
+            >
+              {t('nav.books')}
+            </NavLink>
+            <NavLink
+              to="/community"
+              className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`}
+              aria-current={({ isActive }) => (isActive ? 'page' : undefined)}
+            >
+              {t('nav.community')}
+            </NavLink>
+            <NavLink
+              to="/buy"
+              className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`}
+              aria-current={({ isActive }) => (isActive ? 'page' : undefined)}
+            >
+              {t('nav.buy')}
+            </NavLink>
           </nav>
           <div className="gr-actions">
             {token ? (
