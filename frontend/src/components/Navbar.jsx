@@ -35,7 +35,7 @@ export default function Navbar() {
   const debounceRef = React.useRef(null);
 
   React.useEffect(() => {
-    const onToken = () => { try { localStorage.removeItem('avatarUrl'); } catch(_) {}; setAvatarUrl(""); setToken(readToken()); };
+    const onToken = () => { try { localStorage.removeItem('avatarUrl'); } catch (_) { }; setAvatarUrl(""); setToken(readToken()); };
     const onName = () => setName(readName());
     window.addEventListener('auth:token', onToken);
     window.addEventListener('auth:name', onName);
@@ -59,7 +59,7 @@ export default function Navbar() {
           localStorage.setItem('avatarUrl', url);
           setAvatarUrl(url);
         }
-      } catch (_) {}
+      } catch (_) { }
     };
     load();
   }, [token]);
@@ -75,11 +75,11 @@ export default function Navbar() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
-    try { localStorage.removeItem("name"); } catch (_) {}
-    try { sessionStorage.removeItem("name"); } catch (_) {}
-    try { localStorage.removeItem("avatarUrl"); } catch (_) {}
-    try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
-    try { window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+    try { localStorage.removeItem("name"); } catch (_) { }
+    try { sessionStorage.removeItem("name"); } catch (_) { }
+    try { localStorage.removeItem("avatarUrl"); } catch (_) { }
+    try { window.dispatchEvent(new Event('auth:token')); } catch (_) { }
+    try { window.dispatchEvent(new Event('auth:name')); } catch (_) { }
     navigate("/login");
   };
 
