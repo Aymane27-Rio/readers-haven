@@ -1,7 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar.jsx";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
-import { API_BASE } from "../services/apiBase.js";
+import { API_ORIGIN } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 import { useToast } from "../components/ToastProvider.jsx";
 
@@ -57,7 +57,7 @@ const demoCatalog = [
     },
 ];
 
-const PAYMENT_ENDPOINT = `${API_BASE}/payments/checkout`;
+const PAYMENT_ENDPOINT = `${API_ORIGIN}/payments/checkout`;
 
 export default function Buy() {
     const token = React.useMemo(

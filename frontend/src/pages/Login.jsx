@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { t } from "../i18n";
-import { API_BASE, AUTH_BASE } from "../services/apiBase.js";
+import { API_ORIGIN, AUTH_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
@@ -18,7 +18,7 @@ export default function Login() {
     setError("");
 
     try {
-      const data = await fetchJson(`${API_BASE}/auth/login`, {
+      const data = await fetchJson(LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -31,10 +31,10 @@ export default function Login() {
       const storage = remember ? localStorage : sessionStorage;
       storage.setItem("token", data.token);
       if (data?.name) {
-        try { storage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+        try { storage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) { }
       }
 
-      try { window.dispatchEvent(new Event('auth:token')); } catch (_) {}
+      try { window.dispatchEvent(new Event('auth:token')); } catch (_) { }
       navigate("/home");
     } catch (err) {
       setError(err.message || "Invalid credentials");
@@ -126,7 +126,7 @@ export default function Login() {
             aria-label={t('auth.continue_google')}
           >
             {/* Google G icon */}
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.989h10.5c.1.56.15 1.14.15 1.74 0 6.09-4.09 10.41-10.65 10.41A11.85 11.85 0 0 1 0 12 11.85 11.85 0 0 1 12 0c3.2 0 5.88 1.17 7.9 3.07l-3.2 3.02C15.5 4.94 13.92 4.3 12 4.3 8.23 4.3 5.1 7.45 5.1 11.2s3.13 6.9 6.9 6.9c3.5 0 5.6-2 5.85-4.78H12v-1.33z"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.989h10.5c.1.56.15 1.14.15 1.74 0 6.09-4.09 10.41-10.65 10.41A11.85 11.85 0 0 1 0 12 11.85 11.85 0 0 1 12 0c3.2 0 5.88 1.17 7.9 3.07l-3.2 3.02C15.5 4.94 13.92 4.3 12 4.3 8.23 4.3 5.1 7.45 5.1 11.2s3.13 6.9 6.9 6.9c3.5 0 5.6-2 5.85-4.78H12v-1.33z" /></svg>
             {t('auth.continue_google')}
           </button>
         </div>

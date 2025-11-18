@@ -6,7 +6,7 @@ import Breadcrumbs from "../components/Breadcrumbs.jsx";
 import { genreData } from "../data/genres.js";
 import LoadingSkeleton from "../components/LoadingSkeleton.jsx";
 import { useToast } from "../components/ToastProvider.jsx";
-import { API_BASE } from "../services/apiBase.js";
+import { API_ORIGIN } from "../services/apiBase.js";
 import { LuBookMarked } from "react-icons/lu";
 
 const STATUS_OPTIONS = [
@@ -34,7 +34,7 @@ function Books() {
   const { notify } = useToast();
 
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-  const API_URL = `${API_BASE}/books`;
+  const API_URL = `${API_ORIGIN}/books`;
 
   const fetchBooks = useCallback(async () => {
     if (!token) {
@@ -80,7 +80,7 @@ function Books() {
       setError("");
       notify("Book added");
       // Refresh from server to capture defaults like status timestamps
-      fetchBooks().catch(() => {});
+      fetchBooks().catch(() => { });
     } catch (err) {
       console.error(err);
       notify("Failed to add book", "error");

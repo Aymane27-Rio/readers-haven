@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { API_BASE, AUTH_BASE } from "../services/apiBase.js";
+import { API_ORIGIN, AUTH_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
-const REGISTER_URL = `${API_BASE}/auth/register`;
+const REGISTER_URL = `${API_ORIGIN}/auth/register`;
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -36,7 +36,7 @@ export default function Signup() {
         // Explicitly send a dev bypass marker when no captcha is configured
         recaptchaToken = "DEV_BYPASS";
       }
-    } catch (_) {}
+    } catch (_) { }
 
     if (formData.password !== formData.confirm) {
       setError("Passwords do not match.");
@@ -50,15 +50,15 @@ export default function Signup() {
         body: JSON.stringify({ name: formData.name, email: formData.email, password: formData.password, recaptchaToken }),
       });
 
-      try { if (SITE_KEY && window.grecaptcha) window.grecaptcha.reset(); } catch (_) {}
+      try { if (SITE_KEY && window.grecaptcha) window.grecaptcha.reset(); } catch (_) { }
 
       if (!data?.token) {
         throw new Error("Registration response missing token");
       }
 
-      try { localStorage.setItem("token", data.token); window.dispatchEvent(new Event('auth:token')); } catch (_) {}
+      try { localStorage.setItem("token", data.token); window.dispatchEvent(new Event('auth:token')); } catch (_) { }
       if (data?.name) {
-        try { localStorage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) {}
+        try { localStorage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } catch (_) { }
       }
 
       navigate("/home");
@@ -160,7 +160,7 @@ export default function Signup() {
             onClick={() => { window.location.href = `${AUTH_BASE}/auth/google`; }}
             aria-label="Continue with Google"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.989h10.5c.1.56.15 1.14.15 1.74 0 6.09-4.09 10.41-10.65 10.41A11.85 11.85 0 0 1 0 12 11.85 11.85 0 0 1 12 0c3.2 0 5.88 1.17 7.9 3.07l-3.2 3.02C15.5 4.94 13.92 4.3 12 4.3 8.23 4.3 5.1 7.45 5.1 11.2s3.13 6.9 6.9 6.9c3.5 0 5.6-2 5.85-4.78H12v-1.33z"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11.989h10.5c.1.56.15 1.14.15 1.74 0 6.09-4.09 10.41-10.65 10.41A11.85 11.85 0 0 1 0 12 11.85 11.85 0 0 1 12 0c3.2 0 5.88 1.17 7.9 3.07l-3.2 3.02C15.5 4.94 13.92 4.3 12 4.3 8.23 4.3 5.1 7.45 5.1 11.2s3.13 6.9 6.9 6.9c3.5 0 5.6-2 5.85-4.78H12v-1.33z" /></svg>
             Continue with Google
           </button>
         </div>

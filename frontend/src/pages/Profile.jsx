@@ -1,7 +1,7 @@
 import React from "react";
 import Navbar from "../components/Navbar.jsx";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
-import { API_BASE, UPLOADS_BASE } from "../services/apiBase.js";
+import { API_BASE, API_ORIGIN, UPLOADS_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 import { useToast } from "../components/ToastProvider.jsx";
 
@@ -47,7 +47,7 @@ export default function Profile() {
   React.useEffect(() => {
     (async () => {
       try {
-        const data = await fetchJson(`${API_BASE}/profile`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await fetchJson(`${API_ORIGIN}/profile`, { headers: { Authorization: `Bearer ${token}` } });
         setName(data.name || "");
         setUsername(data.username || "");
         setBio(data.bio || "");
@@ -85,7 +85,7 @@ export default function Profile() {
     (async () => {
       if (!token) return;
       try {
-        const data = await fetchJson(`${API_BASE}/quotes`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await fetchJson(`${API_ORIGIN}/quotes`, { headers: { Authorization: `Bearer ${token}` } });
         setQuotes(data);
       } catch (_) { }
     })();
@@ -96,7 +96,7 @@ export default function Profile() {
     setError("");
     if (!quoteText.trim()) { setError("Quote text is required"); return; }
     try {
-      const q = await fetchJson(`${API_BASE}/quotes`, {
+      const q = await fetchJson(`${API_ORIGIN}/quotes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ text: quoteText, author: quoteAuthor })
@@ -117,7 +117,7 @@ export default function Profile() {
   const deleteQuote = async (id) => {
     setError("");
     try {
-      await fetchJson(`${API_BASE}/quotes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      await fetchJson(`${API_ORIGIN}/quotes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
       setQuotes((prev) => prev.filter((q) => q._id !== id));
       notify("Quote deleted");
     } catch (_) {
@@ -131,7 +131,7 @@ export default function Profile() {
     (async () => {
       if (!token) return;
       try {
-        const data = await fetchJson(`${API_BASE}/books`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await fetchJson(`${API_ORIGIN}/books`, { headers: { Authorization: `Bearer ${token}` } });
         setBooks(data);
         const counts = { toRead: 0, currentlyReading: 0, read: 0 };
         data.forEach((b) => {
@@ -173,7 +173,7 @@ export default function Profile() {
     form.append("avatar", file);
     setUploading(true);
     try {
-      const data = await fetchJson(`${API_BASE}/profile/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
+      const data = await fetchJson(`${API_ORIGIN}/profile/avatar`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: form });
       const url = data.avatarUrl?.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
       setAvatarUrl(url);
       localStorage.setItem("avatarUrl", url);
@@ -195,7 +195,7 @@ export default function Profile() {
     setError("");
     setSaving(true);
     try {
-      const data = await fetchJson(`${API_BASE}/profile`, {
+      const data = await fetchJson(`${API_ORIGIN}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ name, username, bio, location })
@@ -219,7 +219,7 @@ export default function Profile() {
     setError("");
     setSaving(true);
     try {
-      const res = await fetch(`${API_BASE}/profile`, {
+      const res = await fetch(`${API_ORIGIN}/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ avatarUrl: "" })
