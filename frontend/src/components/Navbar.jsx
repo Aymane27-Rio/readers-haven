@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { t } from "../i18n.js";
-import { API_BASE, UPLOADS_BASE } from "../services/apiBase.js";
+import { API_BASE, API_ORIGIN, UPLOADS_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 
 export default function Navbar() {
@@ -52,7 +52,7 @@ export default function Navbar() {
     const load = async () => {
       if (!token) return;
       try {
-        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await fetchJson(`${API_ORIGIN}/users`, { headers: { Authorization: `Bearer ${token}` } });
         if (data?.name) { localStorage.setItem('name', data.name); setName(data.name); }
         if (data?.avatarUrl) {
           const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;

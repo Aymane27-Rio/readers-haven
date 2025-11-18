@@ -18,29 +18,36 @@ test('POST /checkout validates payload', async () => {
     const res = await request(app).post('/checkout').send({});
     assert.equal(res.status, 400);
     assert.equal(res.body.status, 'error');
-    assert.match(res.body.message, /bookId/i);
+    assert.match(res.body.message, /at least one item/i);
 });
 
 test('POST /checkout processes payment', async () => {
     const payload = {
-        bookId: 'atlas-01',
-        title: 'The Atlas Paradox',
-        amount: 19.5,
-        currency: 'usd',
+        items: [
+            { bookId: 'existentialism-humanism', title: 'Existentialism Is a Humanism', price: 149, quantity: 1 },
+            { bookId: 'stoicism-vsi', title: 'Stoicism: A Very Short Introduction', price: 119, quantity: 2 },
+        ],
+        currency: 'dh',
         notes: 'Deliver via email',
     };
 
     const res = await request(app).post('/checkout').send(payload);
     assert.equal(res.status, 201);
     assert.equal(res.body.status, 'success');
-    assert.equal(res.body.data.bookId, payload.bookId);
-    assert.equal(res.body.data.currency, 'USD');
+    assert.equal(res.body.data.currency, 'DH');
     assert.equal(res.body.data.status, 'succeeded');
+    assert.equal(res.body.data.items.length, 2);
     assert.ok(res.body.data.paymentId);
+    const expectedSubtotal = 149 + 119 * 2;
+    assert.equal(res.body.data.subtotal, Number(expectedSubtotal.toFixed(2)));
+    assert.ok(res.body.data.totalAmount >= res.body.data.subtotal);
 });
 
 test('GET / returns transactions list', async () => {
-    await request(app).post('/checkout').send({ bookId: 'night-02', title: 'The Night Circus', amount: 16 });
+    await request(app).post('/checkout').send({
+        items: [{ bookId: 'aristotle-for-everybody', title: 'Aristotle for Everybody', price: 135, quantity: 1 }],
+        currency: 'dh',
+    });
     const res = await request(app).get('/');
     assert.equal(res.status, 200);
     assert.equal(res.body.status, 'success');

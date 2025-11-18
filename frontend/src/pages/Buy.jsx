@@ -65,29 +65,72 @@ export default function Buy() {
         []
     );
     const { notify } = useToast();
-    const [selectedId, setSelectedId] = React.useState(demoCatalog[0]?.id ?? "");
+    const [basket, setBasket] = React.useState(() => Object.create(null));
     const [notes, setNotes] = React.useState("");
     const [processing, setProcessing] = React.useState(false);
     const [status, setStatus] = React.useState("");
     const [error, setError] = React.useState("");
 
-    const selectedBook = React.useMemo(
-        () => demoCatalog.find((item) => item.id === selectedId) || null,
-        [selectedId]
-    );
+    const selectedItems = React.useMemo(() => (
+        demoCatalog
+            .filter((item) => basket[item.id])
+            .map((item) => ({
+                ...item,
+                quantity: basket[item.id],
+            }))
+    ), [basket]);
+
+    const subtotal = React.useMemo(() => (
+        selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+    ), [selectedItems]);
+
+    const fees = React.useMemo(() => (
+        selectedItems.length === 0 ? 0 : Math.max(subtotal * 0.05, 7.5)
+    ), [selectedItems.length, subtotal]);
+
+    const totalDue = subtotal + fees;
 
     const formatAmount = React.useCallback(
         (value) => `${Number(value || 0).toLocaleString('fr-MA', { minimumFractionDigits: 2 })} DH`,
         []
     );
 
+    const toggleBook = (bookId) => {
+        setBasket((prev) => {
+            const next = { ...prev };
+            if (next[bookId]) {
+                delete next[bookId];
+            } else {
+                next[bookId] = 1;
+            }
+            return next;
+        });
+    };
+
+    const adjustQuantity = (bookId, delta) => {
+        setBasket((prev) => {
+            if (!prev[bookId] && delta > 0) {
+                return { ...prev, [bookId]: 1 };
+            }
+            const current = prev[bookId];
+            if (!current) return prev;
+            const nextQty = current + delta;
+            if (nextQty <= 0) {
+                const next = { ...prev };
+                delete next[bookId];
+                return next;
+            }
+            return { ...prev, [bookId]: Math.min(nextQty, 10) };
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
         setStatus("");
 
-        if (!selectedBook) {
-            setError("Please select a book to purchase.");
+        if (selectedItems.length === 0) {
+            setError("Please select at least one book to purchase.");
             return;
         }
 
@@ -98,13 +141,21 @@ export default function Buy() {
 
         setProcessing(true);
 
+        const items = selectedItems.map((item) => ({
+            bookId: item.id,
+            title: item.title,
+            price: item.price,
+            quantity: item.quantity,
+        }));
+
         const payload = {
-            bookId: selectedBook.id,
-            title: selectedBook.title,
-            amount: selectedBook.price,
+            items,
+            subtotal,
+            fees,
+            totalAmount: totalDue,
             currency: "DH",
             notes: notes.trim(),
-            description: `Purchase of ${selectedBook.title}`,
+            description: `Purchase of ${items.length} ${items.length === 1 ? 'book' : 'books'}`,
         };
 
         let simulated = false;
@@ -121,6 +172,7 @@ export default function Buy() {
 
             const message = response?.message || "Payment processed successfully.";
             setStatus(message);
+            setBasket(Object.create(null));
             setNotes("");
             notify("Payment processed successfully");
         } catch (err) {
@@ -128,7 +180,7 @@ export default function Buy() {
             simulated = true;
             setError("Payment service unavailable. Running local simulation instead.");
             setTimeout(() => {
-                setStatus(`Simulated payment completed — ${selectedBook.title} is now yours to enjoy!`);
+                setStatus("Simulated payment completed — enjoy your new books!");
                 setProcessing(false);
                 notify("Payment simulated");
             }, 1200);
@@ -162,7 +214,7 @@ export default function Buy() {
                             </h2>
                             <div className="grid grid--cards" style={{ marginBottom: "1.5rem" }}>
                                 {demoCatalog.map((book) => {
-                                    const isActive = selectedId === book.id;
+                                    const isActive = Boolean(basket[book.id]);
                                     return (
                                         <label
                                             key={book.id}
@@ -178,11 +230,10 @@ export default function Buy() {
                                             }}
                                         >
                                             <input
-                                                type="radio"
-                                                name="book"
+                                                type="checkbox"
                                                 value={book.id}
                                                 checked={isActive}
-                                                onChange={() => setSelectedId(book.id)}
+                                                onChange={() => toggleBook(book.id)}
                                                 style={{ display: "none" }}
                                             />
                                             <div style={{ display: "flex", flexDirection: "column", gap: ".35rem" }}>
@@ -202,6 +253,35 @@ export default function Buy() {
                                                 >
                                                     {formatAmount(book.price)}
                                                 </span>
+                                                {isActive && (
+                                                    <div style={{ display: "flex", alignItems: "center", gap: ".4rem", marginTop: ".4rem" }}>
+                                                        <button
+                                                            type="button"
+                                                            className="vintage-button vintage-button--ghost"
+                                                            style={{ padding: ".3rem .6rem", minWidth: 32 }}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                adjustQuantity(book.id, -1);
+                                                            }}
+                                                            aria-label={`Decrease quantity of ${book.title}`}
+                                                        >
+                                                            −
+                                                        </button>
+                                                        <span className="brand-title" style={{ fontSize: "1rem" }}>{basket[book.id]}</span>
+                                                        <button
+                                                            type="button"
+                                                            className="vintage-button vintage-button--ghost"
+                                                            style={{ padding: ".3rem .6rem", minWidth: 32 }}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                adjustQuantity(book.id, 1);
+                                                            }}
+                                                            aria-label={`Increase quantity of ${book.title}`}
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </label>
                                     );
@@ -225,7 +305,7 @@ export default function Buy() {
                                         style={{ marginTop: ".35rem" }}
                                     ></textarea>
                                 </div>
-                                {selectedBook && (
+                                {selectedItems.length > 0 && (
                                     <div
                                         className="vintage-card"
                                         style={{
@@ -235,26 +315,36 @@ export default function Buy() {
                                         }}
                                     >
                                         <p className="tagline" style={{ marginBottom: ".25rem" }}>Order summary</p>
-                                        <p className="brand-title" style={{ fontSize: "1.05rem", marginBottom: ".35rem" }}>
-                                            {selectedBook.title}
-                                        </p>
+                                        <div style={{ display: "grid", gap: ".45rem", marginBottom: ".5rem" }}>
+                                            {selectedItems.map((item) => (
+                                                <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: ".45rem" }}>
+                                                    <div style={{ display: "grid" }}>
+                                                        <span className="brand-title" style={{ fontSize: "1rem" }}>{item.title}</span>
+                                                        <span className="tagline">Qty {item.quantity}</span>
+                                                    </div>
+                                                    <span className="brand-title" style={{ fontSize: "1rem" }}>
+                                                        {formatAmount(item.price * item.quantity)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
                                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: ".25rem" }}>
                                             <span className="tagline">Subtotal</span>
                                             <span className="brand-title" style={{ fontSize: "1rem" }}>
-                                                {formatAmount(selectedBook.price)}
+                                                {formatAmount(subtotal)}
                                             </span>
                                         </div>
                                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: ".25rem" }}>
                                             <span className="tagline">Fees (simulated)</span>
                                             <span className="brand-title" style={{ fontSize: "1rem" }}>
-                                                {formatAmount(Math.max(selectedBook.price * 0.05, 7.5))}
+                                                {formatAmount(fees)}
                                             </span>
                                         </div>
                                         <div style={{ height: 1, background: "var(--border)", margin: ".45rem 0" }}></div>
                                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span className="tagline" style={{ fontWeight: 600 }}>Total due</span>
                                             <span className="brand-title" style={{ fontSize: "1.1rem" }}>
-                                                {formatAmount(selectedBook.price + Math.max(selectedBook.price * 0.05, 7.5))}
+                                                {formatAmount(totalDue)}
                                             </span>
                                         </div>
                                     </div>
@@ -280,12 +370,13 @@ export default function Buy() {
                                         setStatus("");
                                         setError("");
                                         setNotes("");
+                                        setBasket(Object.create(null));
                                     }}
                                 >
                                     Clear
                                 </button>
                                 <button type="submit" className="vintage-button" disabled={processing}>
-                                    {processing ? "Processing..." : selectedBook ? `Get for ${formatAmount(selectedBook.price)}` : "Get Your Copy"}
+                                    {processing ? "Processing..." : selectedItems.length ? `Proceed • ${formatAmount(totalDue)}` : "Get Your Copy"}
                                 </button>
                             </div>
                         </form>

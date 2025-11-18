@@ -6,6 +6,7 @@ import { createLogger, initializeTracing, createHttpMetrics } from 'shared-libs/
 const SERVICE_NAME = 'payment-service';
 const PORT = parseInt(process.env.PORT || '5010', 10);
 const PROCESSING_DELAY_MS = parseInt(process.env.PAYMENT_PROCESSING_DELAY_MS || '0', 10);
+const MIN_FEE_AMOUNT = 7.5;
 
 const logger = createLogger(SERVICE_NAME);
 initializeTracing(SERVICE_NAME, logger);
@@ -19,28 +20,40 @@ app.use(metricsMiddleware);
 
 const transactions = new Map();
 
-const sanitizeCurrency = (currency = 'USD') => String(currency).trim().toUpperCase();
+const sanitizeCurrency = (currency = 'USD') => String(currency || 'USD').trim().toUpperCase();
+
+const validateItem = (item, index) => {
+    if (!item || typeof item !== 'object') return `Item at index ${index} is invalid`;
+    if (!item.bookId || typeof item.bookId !== 'string') return `Item ${index + 1}: bookId is required`;
+    if (!item.title || typeof item.title !== 'string') return `Item ${index + 1}: title is required`;
+    if (item.price == null || Number.isNaN(Number(item.price))) return `Item ${index + 1}: price must be a number`;
+    if (Number(item.price) <= 0) return `Item ${index + 1}: price must be greater than zero`;
+    if (item.quantity == null || Number.isNaN(Number(item.quantity))) return `Item ${index + 1}: quantity must be a number`;
+    if (Number(item.quantity) <= 0) return `Item ${index + 1}: quantity must be greater than zero`;
+    if (!Number.isInteger(Number(item.quantity))) return `Item ${index + 1}: quantity must be an integer`;
+    return null;
+};
 
 const validatePayload = (body) => {
     if (!body || typeof body !== 'object') {
         return 'Invalid JSON body';
     }
-    const { bookId, title, amount, currency } = body;
-    if (!bookId || typeof bookId !== 'string') {
-        return 'bookId is required';
+
+    const { items, currency } = body;
+
+    if (!Array.isArray(items) || items.length === 0) {
+        return 'At least one item is required';
     }
-    if (!title || typeof title !== 'string') {
-        return 'title is required';
+
+    for (let i = 0; i < items.length; i += 1) {
+        const err = validateItem(items[i], i);
+        if (err) return err;
     }
-    if (amount == null || Number.isNaN(Number(amount))) {
-        return 'amount must be a number';
-    }
-    if (Number(amount) <= 0) {
-        return 'amount must be greater than zero';
-    }
+
     if (currency && typeof currency !== 'string') {
         return 'currency must be a string';
     }
+
     return null;
 };
 
@@ -64,24 +77,57 @@ app.post('/checkout', async (req, res) => {
     }
 
     const {
-        bookId,
-        title,
-        amount,
+        items,
+        subtotal,
+        fees,
+        totalAmount,
         currency = 'USD',
         notes = '',
         description = '',
         userId,
     } = req.body;
 
-    const paymentId = randomUUID();
     const sanitizedCurrency = sanitizeCurrency(currency);
+    const normalizedItems = items.map((item) => ({
+        bookId: item.bookId,
+        title: item.title,
+        price: Number(item.price),
+        quantity: Number(item.quantity),
+    }));
+
+    const computedSubtotal = normalizedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const computedFees = normalizedItems.length === 0 ? 0 : Math.max(computedSubtotal * 0.05, MIN_FEE_AMOUNT);
+    const computedTotal = computedSubtotal + computedFees;
+
+    const providedSubtotal = subtotal == null ? computedSubtotal : Number(subtotal);
+    const providedFees = fees == null ? computedFees : Number(fees);
+    const providedTotal = totalAmount == null ? computedTotal : Number(totalAmount);
+
+    const amountsMatch = Math.abs(providedSubtotal - computedSubtotal) < 0.01
+        && Math.abs(providedFees - computedFees) < 0.01
+        && Math.abs(providedTotal - computedTotal) < 0.01;
+
+    if (!amountsMatch) {
+        logger.warn({
+            msg: 'Amount mismatch on checkout payload',
+            paymentCurrency: sanitizedCurrency,
+            providedSubtotal,
+            computedSubtotal,
+            providedFees,
+            computedFees,
+            providedTotal,
+            computedTotal,
+        });
+    }
+
+    const paymentId = randomUUID();
     const createdAt = new Date().toISOString();
 
     logger.info({
         msg: 'Processing payment request',
         paymentId,
-        bookId,
-        amount: Number(amount),
+        items: normalizedItems.length,
+        total: Number(computedTotal.toFixed(2)),
         currency: sanitizedCurrency,
         userId: userId || 'anonymous',
     });
@@ -92,9 +138,10 @@ app.post('/checkout', async (req, res) => {
 
     const paymentRecord = {
         paymentId,
-        bookId,
-        title,
-        amount: Number(amount),
+        items: normalizedItems,
+        subtotal: Number(computedSubtotal.toFixed(2)),
+        fees: Number(computedFees.toFixed(2)),
+        totalAmount: Number(computedTotal.toFixed(2)),
         currency: sanitizedCurrency,
         status: 'succeeded',
         notes,

@@ -2,7 +2,7 @@ import React from "react";
 import Navbar from "../components/Navbar.jsx";
 import { t } from "../i18n.js";
 import Breadcrumbs from "../components/Breadcrumbs.jsx";
-import { API_BASE } from "../services/apiBase.js";
+import { API_ORIGIN } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 
 export default function Settings() {
@@ -21,13 +21,13 @@ export default function Settings() {
     (async () => {
       if (!token) return;
       try {
-        const data = await fetchJson(`${API_BASE}/users`, { headers: { Authorization: `Bearer ${token}` } });
-          const p = data.preferences || {};
-          if (p.theme) setTheme(p.theme);
-          if (typeof p.emailUpdates === 'boolean') setEmailUpdates(p.emailUpdates);
-          if (typeof p.showShelvesPublic === 'boolean') setShowShelvesPublic(p.showShelvesPublic);
-          if (p.language) setLanguage(p.language);
-      } catch (_) {}
+        const data = await fetchJson(`${API_ORIGIN}/users`, { headers: { Authorization: `Bearer ${token}` } });
+        const p = data.preferences || {};
+        if (p.theme) setTheme(p.theme);
+        if (typeof p.emailUpdates === 'boolean') setEmailUpdates(p.emailUpdates);
+        if (typeof p.showShelvesPublic === 'boolean') setShowShelvesPublic(p.showShelvesPublic);
+        if (p.language) setLanguage(p.language);
+      } catch (_) { }
     })();
   }, [token]);
 
@@ -36,7 +36,7 @@ export default function Settings() {
       localStorage.setItem('lang', lang);
       document.documentElement.lang = lang;
       document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const handleSave = async (e) => {
@@ -45,18 +45,18 @@ export default function Settings() {
     setError("");
     setStatus("Saving...");
     try {
-      const data = await fetchJson(`${API_BASE}/users`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ preferences: { theme, emailUpdates, showShelvesPublic, language } }) });
-        const p = data.preferences || {};
-        // persist locally as well
-        try { localStorage.setItem('settings', JSON.stringify(p)); } catch (_) {}
-        applyLanguage(p.language || 'en');
-        // apply theme immediately
-        if (p.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
-        else if (p.theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
-        else document.documentElement.removeAttribute('data-theme');
-        try { window.dispatchEvent(new Event('settings:changed')); } catch (_) {}
-        setStatus('Saved');
-        setTimeout(() => setStatus(""), 1200);
+      const data = await fetchJson(`${API_ORIGIN}/users`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ preferences: { theme, emailUpdates, showShelvesPublic, language } }) });
+      const p = data.preferences || {};
+      // persist locally as well
+      try { localStorage.setItem('settings', JSON.stringify(p)); } catch (_) { }
+      applyLanguage(p.language || 'en');
+      // apply theme immediately
+      if (p.theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+      else if (p.theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      else document.documentElement.removeAttribute('data-theme');
+      try { window.dispatchEvent(new Event('settings:changed')); } catch (_) { }
+      setStatus('Saved');
+      setTimeout(() => setStatus(""), 1200);
     } catch (_) {
       setError('Network error');
       setStatus("");
@@ -92,7 +92,7 @@ export default function Settings() {
                         const cur = JSON.parse(localStorage.getItem('settings') || '{}');
                         localStorage.setItem('settings', JSON.stringify({ ...cur, theme: val }));
                         window.dispatchEvent(new Event('settings:changed'));
-                      } catch (_) {}
+                      } catch (_) { }
                     }}
                   >
                     <option value="system">{t('settings.system')}</option>
