@@ -561,7 +561,7 @@ textarea:focus-visible {
   text-align: center;
   background: var(--card);
   border: 1px solid color-mix(in oklab, var(--border) 70%, var(--accent));
-  border-radius: var(--radius-xl);
+  border-radius: calc(var(--radius-xl) * 1.4);
   box-shadow: var(--shadow-card);
   display: grid;
   gap: clamp(.5rem, 2vw, .9rem);
@@ -579,6 +579,17 @@ textarea:focus-visible {
   font-size: clamp(3.4rem, 5vw, 5.2rem);
   color: rgba(139, 26, 26, 0.15);
   z-index: 0;
+}
+
+.quote-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+  opacity: .6;
 }
 
 .quote-card blockquote {
@@ -604,32 +615,29 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: .5rem;
+  position: relative;
+  z-index: 1;
 }
 
-.quote-card__shuffle {
+.quote-card__indicators {
   display: inline-flex;
+  gap: .35rem;
   align-items: center;
-  gap: .45rem;
-  background: rgba(184, 115, 51, 0.12);
-  color: color-mix(in oklab, var(--accent) 78%, var(--wood));
-  border: 1px solid rgba(184, 115, 51, 0.32);
-  border-radius: 999px;
-  padding: .35rem .75rem;
-  font-weight: 600;
-  font-size: .85rem;
-  cursor: pointer;
-  transition: transform .18s ease, background-color .18s ease, box-shadow .2s ease;
 }
 
-.quote-card__shuffle:hover {
-  background: rgba(184, 115, 51, 0.24);
-  box-shadow: 0 8px 20px rgba(184, 115, 51, 0.18);
+.quote-card__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(184, 115, 51, 0.25);
+  transition: background-color var(--dur-mid) var(--ease-out), transform var(--dur-mid) var(--ease-out);
 }
 
-.quote-card__shuffle:active {
-  transform: translateY(1px);
+.quote-card__dot.is-active {
+  background: color-mix(in oklab, var(--accent) 80%, var(--gold) 20%);
+  transform: scale(1.25);
 }
 
 .quote-card__corner {

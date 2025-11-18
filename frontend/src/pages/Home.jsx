@@ -11,7 +11,6 @@ import {
   GiDragonSpiral,
   GiFlameSpin,
 } from "react-icons/gi";
-import { FiRefreshCw } from "react-icons/fi";
 
 const quotes = [
   "A reader lives a thousand lives before he dies. — George R.R. Martin",
@@ -43,20 +42,18 @@ export default function Home() {
   const quote = quotes[quoteIndex];
 
   useEffect(() => {
-    if (!isQuoteAnimating) return undefined;
-    const timer = setTimeout(() => setIsQuoteAnimating(false), 450);
-    return () => clearTimeout(timer);
-  }, [isQuoteAnimating]);
+    if (quotes.length <= 1) return undefined;
+    const timer = setInterval(() => {
+      setQuoteIndex((prev) => (prev + 1) % quotes.length);
+    }, 9000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const shuffleQuote = () => {
-    if (quotes.length <= 1) return;
-    let next = quoteIndex;
-    while (next === quoteIndex) {
-      next = Math.floor(Math.random() * quotes.length);
-    }
+  useEffect(() => {
     setIsQuoteAnimating(true);
-    setQuoteIndex(next);
-  };
+    const timeout = setTimeout(() => setIsQuoteAnimating(false), 480);
+    return () => clearTimeout(timeout);
+  }, [quoteIndex]);
 
   return (
     <>
@@ -89,10 +86,14 @@ export default function Home() {
             </blockquote>
             <div className="quote-card__footer">
               <figcaption>{t('home.quote_caption')}</figcaption>
-              <button type="button" className="quote-card__shuffle" onClick={shuffleQuote} aria-label={t('home.quote_shuffle')}>
-                <FiRefreshCw size={18} />
-                <span>{t('home.quote_shuffle')}</span>
-              </button>
+              <div className="quote-card__indicators" role="presentation">
+                {quotes.map((_, idx) => (
+                  <span
+                    key={idx}
+                    className={`quote-card__dot${idx === quoteIndex ? " is-active" : ""}`}
+                  />
+                ))}
+              </div>
             </div>
           </figure>
 
