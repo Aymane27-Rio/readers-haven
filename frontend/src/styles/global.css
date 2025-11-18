@@ -129,6 +129,8 @@ html,
 body,
 #root {
   height: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
@@ -177,8 +179,8 @@ a:hover {
     radial-gradient(1400px 800px at 80% 10%, rgba(181, 84, 0, 0.06), transparent 60%),
     radial-gradient(1200px 700px at 20% 90%, rgba(74, 141, 141, 0.06), transparent 60%),
     var(--sand);
-  /* subtle parallax by offsetting pattern via CSS vars */
-  background-attachment: fixed;
+  /* use normal scroll to avoid odd panning/overflow on some devices */
+  background-attachment: scroll;
   background-size: cover;
   background-position: center;
 }
@@ -186,8 +188,7 @@ a:hover {
 .pattern-bg::after {
   content: "";
   position: fixed;
-  inset: -10vh -10vw;
-  /* extend beyond to avoid gaps */
+  inset: 0;
   pointer-events: none;
   mix-blend-mode: multiply;
   opacity: .3;
@@ -214,7 +215,7 @@ a:hover {
 }
 
 .wrap {
-  width: min(1100px, 92%);
+  width: min(1200px, 92%);
   margin-inline: auto;
 }
 
@@ -561,7 +562,7 @@ textarea:focus-visible {
   text-align: center;
   background: var(--card);
   border: 1px solid color-mix(in oklab, var(--border) 70%, var(--accent));
-  border-radius: calc(var(--radius-xl) * 1.4);
+  border-radius: calc(var(--radius-lg) * 1.4);
   box-shadow: var(--shadow-card);
   display: grid;
   gap: clamp(.5rem, 2vw, .9rem);
@@ -770,7 +771,7 @@ textarea:focus-visible {
 }
 
 .gr-brand {
-  margin-left: clamp(-0.75rem, -1.5vw, -0.35rem);
+  margin-left: 0;
 }
 
 @media (max-width: 780px) {
