@@ -83,21 +83,6 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  const avatarShellStyle = {
-    width: 32,
-    height: 32,
-    borderRadius: '9999px',
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: avatarUrl ? 'transparent' : 'rgba(148,163,184,0.25)',
-    color: '#1f2937',
-    fontWeight: 700,
-    overflow: 'hidden',
-    boxShadow: avatarUrl ? '0 2px 8px rgba(15,23,42,0.08)' : 'none',
-    transition: 'box-shadow 150ms ease'
-  };
-
   return (
     // Goodreads-like header: full-width beige, left brand, centered search, right links & auth
     <header className="gr-nav" role="banner">
@@ -140,6 +125,7 @@ export default function Navbar() {
             <NavLink to="/home" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.home')}</NavLink>
             <NavLink to="/books" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.books')}</NavLink>
             <NavLink to="/community" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.community')}</NavLink>
+            <NavLink to="/buy" className={({ isActive }) => `gr-link${isActive ? ' is-active' : ''}`} aria-current={({ isActive }) => isActive ? 'page' : undefined}>{t('nav.buy')}</NavLink>
           </nav>
           <div className="gr-actions">
             {token ? (
@@ -152,15 +138,17 @@ export default function Navbar() {
                   title={name || 'Profile'}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem' }}
                 >
-                  <span style={avatarShellStyle}>
+                  <span className="profile-avatar profile-avatar--xs">
                     {avatarUrl ? (
                       <img
                         src={avatarUrl}
                         alt="Avatar"
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        className="profile-avatar__image"
                       />
                     ) : (
-                      (name || 'U').trim().charAt(0).toUpperCase()
+                      <span className="profile-avatar__initials">
+                        {(name || 'U').trim().charAt(0).toUpperCase()}
+                      </span>
                     )}
                   </span>
                 </button>

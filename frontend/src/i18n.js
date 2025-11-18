@@ -1,6 +1,6 @@
 export const dictionaries = {
   en: {
-    nav: { home: 'Home', books: 'My Books', community: 'Community', signIn: 'Sign In', join: 'Join', profile: 'Profile', settings: 'Settings', signOut: 'Sign Out' },
+    nav: { home: 'Home', books: 'My Books', community: 'Community', buy: 'Buy a Book', signIn: 'Sign In', join: 'Join', profile: 'Profile', settings: 'Settings', signOut: 'Sign Out' },
     settings: {
       title: 'Settings', hello: 'Hello', manage: 'Manage your preferences.',
       theme: 'Theme', system: 'System', light: 'Light', dark: 'Dark',
@@ -44,7 +44,7 @@ export const dictionaries = {
     }
   },
   ar: {
-    nav: { home: 'الرئيسية', books: 'كتبي', community: 'المجتمع', signIn: 'تسجيل الدخول', join: 'إنشاء حساب', profile: 'الملف الشخصي', settings: 'الإعدادات', signOut: 'تسجيل الخروج' },
+    nav: { home: 'الرئيسية', books: 'كتبي', community: 'المجتمع', buy: 'شراء كتاب', signIn: 'تسجيل الدخول', join: 'إنشاء حساب', profile: 'الملف الشخصي', settings: 'الإعدادات', signOut: 'تسجيل الخروج' },
     settings: {
       title: 'الإعدادات', hello: 'مرحبًا', manage: 'قم بإدارة تفضيلاتك.',
       theme: 'السمة', system: 'النظام', light: 'فاتح', dark: 'داكن',
@@ -89,7 +89,7 @@ export const dictionaries = {
   }
   ,
   zgh: {
-    nav: { home: 'Home', books: 'My Books', community: 'Community', signIn: 'Sign In', join: 'Join', profile: 'Profile', settings: 'Settings', signOut: 'Sign Out' },
+    nav: { home: 'Home', books: 'My Books', community: 'Community', buy: 'Buy a Book', signIn: 'Sign In', join: 'Join', profile: 'Profile', settings: 'Settings', signOut: 'Sign Out' },
     settings: {
       title: 'Settings', hello: 'Azul', manage: 'Ssexdem iɣewwaren nnek.',
       theme: 'Asentel', system: 'Anagraw', light: 'Aceɛlal', dark: 'Aberkan',
