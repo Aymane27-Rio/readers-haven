@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { API_ORIGIN, AUTH_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { GiBookCover } from "react-icons/gi";
 
 const REGISTER_URL = `${API_ORIGIN}/auth/register`;
 
@@ -72,7 +73,9 @@ export default function Signup() {
     <main className="page-container pattern-bg centered">
       <section className="auth-card vintage-card vintage-card--padded fade-in">
         <header className="auth-header">
-          <div className="auth-crest" aria-hidden="true"></div>
+          <div className="auth-crest" aria-hidden="true">
+            <GiBookCover size={28} />
+          </div>
           <h1 className="auth-title">Create an Account</h1>
           <p className="auth-tagline">Join Readers Haven</p>
         </header>

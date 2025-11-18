@@ -1,5 +1,6 @@
 import React from "react";
 import Navbar from "../components/Navbar.jsx";
+import Breadcrumbs from "../components/Breadcrumbs.jsx";
 import { genreData } from "../data/genres.js";
 import { API_ORIGIN } from "../services/apiBase.js";
 
@@ -167,6 +168,7 @@ export default function Community() {
   return (
     <>
       <Navbar />
+      <Breadcrumbs />
       <main className="page-container pattern-bg section centered" style={{ marginTop: "1cm" }}>
         <div className="wrap">
           <section className="vintage-card vintage-card--padded" style={{ marginBottom: "1.25rem", background: "linear-gradient(135deg, rgba(184,115,51,0.12), rgba(30,41,59,0.06))" }}>

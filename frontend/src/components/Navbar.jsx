@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { GiBookCover } from "react-icons/gi";
 import { t } from "../i18n.js";
 import { API_BASE, API_ORIGIN, UPLOADS_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
@@ -89,7 +90,10 @@ export default function Navbar() {
       <div className="gr-nav__inner" role="navigation" aria-label="Primary">
         {/* Brand (left) */}
         <div className="gr-brand">
-          <Link to="/login">Readers Haven</Link>
+          <Link to="/login">
+            <span className="brand-logo" aria-hidden="true"><GiBookCover size={22} /></span>
+            <span className="brand-name">Readers Haven</span>
+          </Link>
         </div>
 
         {/* Search (center) */}

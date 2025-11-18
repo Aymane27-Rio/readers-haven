@@ -4,6 +4,7 @@ import { t } from "../i18n";
 import { API_ORIGIN, AUTH_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { GiBookCover } from "react-icons/gi";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -45,7 +46,9 @@ export default function Login() {
     <main className="page-container pattern-bg centered">
       <section className="auth-card vintage-card vintage-card--padded fade-in">
         <header className="auth-header">
-          <div className="auth-crest" aria-hidden="true"></div>
+          <div className="auth-crest" aria-hidden="true">
+            <GiBookCover size={28} />
+          </div>
           <h1 className="auth-title">{t('auth.app')}</h1>
           <p className="auth-tagline">{t('auth.tagline')}</p>
         </header>

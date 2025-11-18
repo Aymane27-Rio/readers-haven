@@ -11,6 +11,7 @@ import {
   GiDragonSpiral,
   GiFlameSpin,
 } from "react-icons/gi";
+import { FiRefreshCw } from "react-icons/fi";
 
 const quotes = [
   "A reader lives a thousand lives before he dies. — George R.R. Martin",
@@ -34,13 +35,28 @@ const highlights = [
 ];
 
 export default function Home() {
-  const [quote, setQuote] = useState("");
+  const [quoteIndex, setQuoteIndex] = useState(() => Math.floor(Math.random() * quotes.length));
+  const [isQuoteAnimating, setIsQuoteAnimating] = useState(false);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  const quote = quotes[quoteIndex];
+
   useEffect(() => {
-    setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
-  }, []);
+    if (!isQuoteAnimating) return undefined;
+    const timer = setTimeout(() => setIsQuoteAnimating(false), 450);
+    return () => clearTimeout(timer);
+  }, [isQuoteAnimating]);
+
+  const shuffleQuote = () => {
+    if (quotes.length <= 1) return;
+    let next = quoteIndex;
+    while (next === quoteIndex) {
+      next = Math.floor(Math.random() * quotes.length);
+    }
+    setIsQuoteAnimating(true);
+    setQuoteIndex(next);
+  };
 
   return (
     <>
@@ -67,22 +83,17 @@ export default function Home() {
             </div>
           </header>
 
-          <figure
-            className="vintage-card fade-in-slow"
-            style={{
-              margin: 0,
-              padding: "1.6rem clamp(1.2rem, 4vw, 2.4rem)",
-              textAlign: "center",
-              display: "grid",
-              gap: ".65rem",
-            }}
-          >
-            <blockquote style={{ fontStyle: "italic", fontSize: "1.05rem", lineHeight: 1.7 }}>
+          <figure className={`vintage-card quote-card fade-in-slow${isQuoteAnimating ? " is-animating" : ""}`}>
+            <blockquote>
               {quote}
             </blockquote>
-            <figcaption className="form-meta" style={{ letterSpacing: ".06em", textTransform: "uppercase" }}>
-              {t('home.quote_caption')}
-            </figcaption>
+            <div className="quote-card__footer">
+              <figcaption>{t('home.quote_caption')}</figcaption>
+              <button type="button" className="quote-card__shuffle" onClick={shuffleQuote} aria-label={t('home.quote_shuffle')}>
+                <FiRefreshCw size={18} />
+                <span>{t('home.quote_shuffle')}</span>
+              </button>
+            </div>
           </figure>
 
           <section style={{ display: "grid", gap: "1.75rem" }}>
