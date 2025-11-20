@@ -9,3 +9,4 @@ Thumbs.db
 *.log
 docker-compose.override.yml
 .vscode/
+k8s-manifests/app-secrets.local.yml

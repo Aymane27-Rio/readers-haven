@@ -39,15 +39,24 @@ jobs:
             gateway/package-lock.json
 
       - name: Install All Dependencies
-        run: npm ci
+        run: |
+          set -e
+          npm ci --prefix shared
+          npm ci --prefix services/auth-service
+          npm ci --prefix services/books-service
+          npm ci --prefix services/quotes-service
+          npm ci --prefix services/order-service
+          npm ci --prefix services/inventory-service
+          npm ci --prefix services/payment-service
+          npm ci --prefix gateway
 
       - name: Run All Tests
         run: |
           set -e
-          npm test --workspace=services/auth-service
-          npm test --workspace=services/books-service
-          npm test --workspace=services/quotes-service
-          npm test --workspace=services/order-service
-          npm test --workspace=services/inventory-service
-          npm test --workspace=services/payment-service
-          npm test --workspace=gateway
+          npm test --prefix services/auth-service
+          npm test --prefix services/books-service
+          npm test --prefix services/quotes-service
+          npm test --prefix services/order-service
+          npm test --prefix services/inventory-service
+          npm test --prefix services/payment-service
+          npm test --prefix gateway
