@@ -4,7 +4,7 @@ metadata:
   name: auth-service
   namespace: readers-haven
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: auth-service
@@ -18,7 +18,8 @@ spec:
         image: readers-haven-auth-service:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 5001
+        - name: http
+          containerPort: 5001
         envFrom:
         - configMapRef:
             name: app-config
@@ -56,5 +57,6 @@ spec:
   selector:
     app: auth-service
   ports:
-  - port: 5001
-    targetPort: 5001
+  - name: http
+    port: 5001
+    targetPort: http

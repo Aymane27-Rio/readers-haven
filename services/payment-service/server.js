@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
-import { createLogger, initializeTracing, createHttpMetrics } from 'shared-libs/libs/observability';
+import { createLogger, initializeTracing, createHttpMetrics } from '../../shared/libs/observability.js';
 
 const SERVICE_NAME = 'payment-service';
 const PORT = parseInt(process.env.PORT || '5010', 10);

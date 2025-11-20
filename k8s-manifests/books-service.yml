@@ -4,7 +4,7 @@ metadata:
   name: books-service
   namespace: readers-haven
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: books-service
@@ -18,7 +18,13 @@ spec:
         image: readers-haven-books-service:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 5002
+        - name: http
+          containerPort: 5002
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
         env:
         - name: PORT
           value: "5002"
@@ -51,5 +57,6 @@ spec:
   selector:
     app: books-service
   ports:
-  - port: 5002
-    targetPort: 5002
+  - name: http
+    port: 5002
+    targetPort: http

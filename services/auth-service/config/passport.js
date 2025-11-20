@@ -5,6 +5,8 @@ import { Strategy as FacebookStrategy } from "passport-facebook";
 import jwt from "jsonwebtoken";
 
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || `${process.env.OAUTH_CALLBACK_BASE || "http://localhost:5000"}/auth/google/callback`;
+const isProd = process.env.NODE_ENV === "production" && !FRONTEND_URL.includes("localhost");
 
 // Serialize/deserialize (JWT is primary, but keep minimal session support off)
 passport.serializeUser((user, done) => done(null, user.id));
@@ -24,8 +26,8 @@ export const configurePassport = () => {
   const hasFacebook = !!process.env.FACEBOOK_APP_ID && !!process.env.FACEBOOK_APP_SECRET;
   console.log("[OAuth] FRONTEND_URL:", process.env.FRONTEND_URL);
   console.log("[OAuth] OAUTH_CALLBACK_BASE:", process.env.OAUTH_CALLBACK_BASE);
-  console.log("[OAuth] Google creds present:", hasGoogle, 
-    process.env.GOOGLE_CLIENT_ID ? `(id: ${String(process.env.GOOGLE_CLIENT_ID).slice(0,6)}... )` : "");
+  console.log("[OAuth] Google creds present:", hasGoogle,
+    process.env.GOOGLE_CLIENT_ID ? `(id: ${String(process.env.GOOGLE_CLIENT_ID).slice(0, 6)}... )` : "");
   console.log("[OAuth] Facebook creds present:", hasFacebook);
   // Google
   if (hasGoogle) {
@@ -34,7 +36,7 @@ export const configurePassport = () => {
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: `${process.env.OAUTH_CALLBACK_BASE || "http://localhost:5000"}/auth/google/callback`,
+          callbackURL: GOOGLE_CALLBACK_URL,
         },
         async (_accessToken, _refreshToken, profile, done) => {
           try {
@@ -112,8 +114,17 @@ export const configurePassport = () => {
 export const oauthSuccessRedirect = (req, res) => {
   // passport attaches { user, token } in req.user when using custom callback, but default flow stores in req.account
   const token = req.user?.token || req.account?.token;
-  const name = (req.user?.user?.name || req.account?.user?.name || "").toString();
-  const redirectTo = `${FRONTEND_URL}/home?token=${encodeURIComponent(token || "")}&name=${encodeURIComponent(name)}`;
+
+  if (token) {
+    res.cookie("rh_session", token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    });
+  }
+
+  const redirectTo = `${FRONTEND_URL}/home`;
   return res.redirect(redirectTo);
 };
 

@@ -53,7 +53,7 @@ export default function Navbar() {
     const load = async () => {
       if (!token) return;
       try {
-        const data = await fetchJson(`${API_ORIGIN}/users`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await fetchJson(`${API_BASE}/profile`, { headers: { Authorization: `Bearer ${token}` } });
         if (data?.name) { localStorage.setItem('name', data.name); setName(data.name); }
         if (data?.avatarUrl) {
           const url = data.avatarUrl.startsWith('/uploads') ? `${UPLOADS_BASE}${data.avatarUrl}` : data.avatarUrl;
@@ -73,7 +73,10 @@ export default function Navbar() {
     return () => { document.removeEventListener('click', onClick); document.removeEventListener('keydown', onEsc); };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetchJson(`${API_BASE}/auth/logout`, { method: "POST" });
+    } catch (_) { }
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
     try { localStorage.removeItem("name"); } catch (_) { }

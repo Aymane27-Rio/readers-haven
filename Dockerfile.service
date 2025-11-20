@@ -1,0 +1,40 @@
+# Reusable Dockerfile template for every Readers Haven service
+# Usage example (from repo root):
+#   docker build -t readers-haven-auth-service:latest \
+#       --build-arg SERVICE_DIR=services/auth-service \
+#       --build-arg PORT=5001 \
+#       -f Dockerfile.service .
+
+FROM node:18-alpine AS base
+
+ARG SERVICE_DIR
+ARG PORT
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+# ------------------ Dependencies ------------------
+# Copy shared libs and the target service (node_modules are excluded via .dockerignore).
+COPY shared ./shared
+COPY ${SERVICE_DIR} ./${SERVICE_DIR}
+
+# Install service deps; npm will resolve "shared-libs": "file:../../shared" correctly.
+RUN cd ${SERVICE_DIR} && \
+    if [ "${SERVICE_DIR}" = "frontend" ]; then \
+    if [ -f package-lock.json ]; then \
+    NODE_ENV=development npm ci; \
+    else \
+    NODE_ENV=development npm install; \
+    fi; \
+    else \
+    if [ -f package-lock.json ]; then \
+    npm ci --omit=dev; \
+    else \
+    npm install --omit=dev; \
+    fi; \
+    fi
+
+# ------------------ runtime ---------------------
+WORKDIR /app/${SERVICE_DIR}
+EXPOSE ${PORT}
+CMD ["node", "server.js"]

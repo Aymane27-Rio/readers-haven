@@ -18,6 +18,7 @@ env:
     quotes-service
     order-service
     inventory-service
+    payment-service
     auth-service
   GATEWAY_DIR: gateway
 
@@ -37,33 +38,16 @@ jobs:
             services/*/package-lock.json
             gateway/package-lock.json
 
-      - name: Install shared dependencies
-        working-directory: shared
+      - name: Install All Dependencies
         run: npm ci
 
-      - name: Install service dependencies
+      - name: Run All Tests
         run: |
           set -e
-          while read -r svc; do
-            if [ -z "$svc" ]; then continue; fi
-            echo "Installing dependencies for $svc"
-            (cd services/$svc && npm ci)
-          done <<< "${SERVICES}"
-
-      - name: Install gateway dependencies
-        working-directory: ${{ env.GATEWAY_DIR }}
-        run: npm ci
-
-      - name: Run service tests
-        run: |
-          set -e
-          while read -r svc; do
-            if [ -z "$svc" ]; then continue; fi
-            echo "Running tests for $svc"
-            (cd services/$svc && npm test)
-          done <<< "${SERVICES}"
-        shell: bash
-
-      - name: Run gateway tests
-        working-directory: ${{ env.GATEWAY_DIR }}
-        run: npm test
+          npm test --workspace=services/auth-service
+          npm test --workspace=services/books-service
+          npm test --workspace=services/quotes-service
+          npm test --workspace=services/order-service
+          npm test --workspace=services/inventory-service
+          npm test --workspace=services/payment-service
+          npm test --workspace=gateway

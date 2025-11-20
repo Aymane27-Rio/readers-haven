@@ -40,10 +40,17 @@ app.use(compression());
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(rateLimit({ windowMs: 60 * 1000, max: 300 }));
 
-// JWT verification middleware (bearer)
+// JWT verification middleware (Bearer header or rh_session cookie)
 function verifyJWT(req, res, next) {
   const auth = req.headers['authorization'] || '';
-  const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  let token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+
+  if (!token && req.headers.cookie) {
+    const parts = req.headers.cookie.split(';').map((c) => c.trim());
+    const session = parts.find((c) => c.startsWith('rh_session='));
+    if (session) token = session.split('=')[1];
+  }
+
   if (!token) return res.status(401).json({ status: 'error', message: 'Unauthorized', error: { code: 'UNAUTHORIZED' }, requestId: req.id });
   try {
     const payload = jwt.verify(token, JWT_SECRET);

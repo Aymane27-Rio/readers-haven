@@ -1,5 +1,9 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { API_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
+
+const RESET_URL = `${API_BASE}/auth/reset`;
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -19,22 +23,17 @@ export default function ResetPassword() {
     if (password !== confirm) { setError("Passwords do not match"); setStatus(""); return; }
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/reset", {
+      const data = await fetchJson(RESET_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password })
       });
-      const data = await res.json();
-      if (res.ok) {
-        // Auto-login after reset
-        try { localStorage.setItem("token", data.token); window.dispatchEvent(new Event('auth:token')); } catch (_) {}
-        try { if (data.name) { localStorage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } } catch (_) {}
-        setStatus("Password updated. Redirecting...");
-        setTimeout(() => navigate("/home"), 600);
-      } else {
-        setError(data.message || "Failed to reset password");
-        setStatus("");
-      }
+      // Backend now sets a secure HttpOnly cookie; we also keep token in storage
+      // for compatibility with existing route guards until we fully migrate.
+      try { if (data.token) { localStorage.setItem("token", data.token); window.dispatchEvent(new Event('auth:token')); } } catch (_) { }
+      try { if (data.name) { localStorage.setItem("name", data.name); window.dispatchEvent(new Event('auth:name')); } } catch (_) { }
+      setStatus("Password updated. Redirecting...");
+      setTimeout(() => navigate("/home"), 600);
     } catch (_) {
       setError("Network error");
       setStatus("");

@@ -1,4 +1,8 @@
 import React from "react";
+import { API_BASE } from "../services/apiBase.js";
+import { fetchJson } from "../services/unwrap.js";
+
+const FORGOT_URL = `${API_BASE}/auth/forgot`;
 
 export default function ForgotPassword() {
   const [email, setEmail] = React.useState("");
@@ -12,19 +16,13 @@ export default function ForgotPassword() {
     setError("");
     setDevLink("");
     try {
-      const res = await fetch("http://localhost:5000/api/auth/forgot", {
+      const data = await fetchJson(FORGOT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      const data = await res.json();
-      if (res.ok) {
-        setStatus(data.message || "If that email exists, a reset link has been sent.");
-        if (data.resetUrl) setDevLink(data.resetUrl);
-      } else {
-        setError(data.message || "Failed to send reset link");
-        setStatus("");
-      }
+      setStatus("If that email exists, a reset link has been sent.");
+      if (data?.resetUrl) setDevLink(data.resetUrl);
     } catch (_) {
       setError("Network error");
       setStatus("");

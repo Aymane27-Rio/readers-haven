@@ -4,7 +4,7 @@ metadata:
   name: gateway
   namespace: readers-haven
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: gateway
@@ -18,10 +18,19 @@ spec:
         image: readers-haven-gateway:latest
         imagePullPolicy: Never
         ports:
-        - containerPort: 3000
+        - name: http
+          containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
         env:
         - name: PORT
-          value: "3000"
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: GATEWAY_PORT
         resources:
           requests:
             memory: "128Mi"
@@ -32,13 +41,13 @@ spec:
         livenessProbe:
           httpGet:
             path: /health
-            port: 3000
+            port: http
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /health
-            port: 3000
+            port: http
           initialDelaySeconds: 5
           periodSeconds: 5
 ---
@@ -51,8 +60,9 @@ spec:
   selector:
     app: gateway
   ports:
-  - port: 3000
-    targetPort: 3000
+  - name: http
+    port: 8080
+    targetPort: http
   type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
@@ -74,4 +84,4 @@ spec:
           service:
             name: gateway
             port:
-              number: 3000
+              name: http

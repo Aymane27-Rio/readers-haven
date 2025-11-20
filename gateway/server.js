@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { createProxyMiddleware } from 'http-proxy-middleware';
-import { createLogger, initializeTracing, createHttpMetrics } from 'shared-libs/libs/observability';
+import { createLogger, initializeTracing, createHttpMetrics } from '../shared/libs/observability.js';
 
 const SERVICE_NAME = 'gateway';
 const PORT = parseInt(process.env.PORT || '3000', 10);
@@ -17,7 +17,6 @@ const app = express();
 app.disable('x-powered-by');
 app.use(cors({ origin: process.env.ALLOWED_ORIGINS?.split(',') || '*', credentials: true }));
 app.use(helmet());
-app.use(express.json());
 app.use(morgan('combined'));
 app.use(metricsMiddleware);
 

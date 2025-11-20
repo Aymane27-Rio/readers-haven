@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "r
 import { AnimatePresence, motion } from "framer-motion";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import ToastProvider from "./components/ToastProvider.jsx";
+
 import Signup from "./pages/Signup.jsx";
 import Login from "./pages/Login.jsx";
 import Books from "./pages/Books.jsx";
@@ -18,6 +19,9 @@ import ResetPassword from "./pages/ResetPassword.jsx";
 import About from "./pages/About.jsx";
 import Contact from "./pages/Contact.jsx";
 import Navbar from "./components/Navbar.jsx";
+import { API_BASE } from "./services/apiBase.js";
+import { fetchJson } from "./services/unwrap.js";
+
 import "./index.css";
 import "./styles/global.css";
 
@@ -27,6 +31,7 @@ function AnimatedRoutes() {
 
   // Apply persisted language and theme
   React.useEffect(() => {
+
     try {
       const s = JSON.parse(localStorage.getItem('settings') || '{}');
       const lang = (localStorage.getItem('lang') || s.language || 'en');
@@ -47,6 +52,34 @@ function AnimatedRoutes() {
         else document.documentElement.removeAttribute('data-theme');
       });
     } catch (_) { }
+  }, []);
+
+  // Initialize CSRF token cookie on first load
+  React.useEffect(() => {
+    (async () => {
+      try {
+        await fetchJson(`${API_BASE}/auth/csrf`);
+      } catch (_) { }
+    })();
+  }, []);
+
+  // Hydrate auth state from cookie-based session (e.g., OAuth login)
+  React.useEffect(() => {
+    if (localStorage.getItem("token") || sessionStorage.getItem("token")) return;
+    (async () => {
+      try {
+        const data = await fetchJson(`${API_BASE}/auth/me`);
+
+        if (data?.token) {
+          localStorage.setItem("token", data.token);
+          try { window.dispatchEvent(new Event('auth:token')); } catch (_) { }
+        }
+        if (data?.name) {
+          localStorage.setItem("name", data.name);
+          try { window.dispatchEvent(new Event('auth:name')); } catch (_) { }
+        }
+      } catch (_) { }
+    })();
   }, []);
 
   React.useEffect(() => {

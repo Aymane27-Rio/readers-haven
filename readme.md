@@ -20,7 +20,7 @@ Built with **React + Vite** on the frontend and **Node.js + Express + MongoDB** 
 | Frontend | React, Vite, TailwindCSS |
 | Backend | Node.js, Express |
 | Database | MongoDB |
-| DevOps | Docker, Docker Compose |
+| DevOps | Docker, Kubernetes (Docker Desktop) |
 
 ---
 
@@ -57,23 +57,18 @@ npm run dev
 
 Then open: http://localhost:5173
 
-**Backend**
+**Backend (via Kubernetes)**
+
+See the section below for running all backend services on Kubernetes.
+
+### Run with Kubernetes (Docker Desktop)
+
 ```bash
-docker-compose up --build
+# from repo root
+./build-images.ps1    # PowerShell; or run the docker build commands manually
+kubectl apply -k k8s/overlays/dev
+kubectl get pods -n readers-haven
 ```
 
-or
-
-```bash
-cd backend
-npm install
-npm start
-```
-
-### Run with Docker (Full setup but still in need of some work/refinements)
-
-Uncomment the **frontend** service inside *docker-compose.yml* and then run
-```bash
-docker-compose up --build
-```
-Visit then: http://localhost:5173
+- Gateway: http://localhost/
+- Frontend: http://localhost:32173/ (NodePort) or http://frontend.localhost/ (Ingress + hosts entry)

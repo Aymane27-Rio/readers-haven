@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { createLogger, initializeTracing, createHttpMetrics } from 'shared-libs/libs/observability';
+import { createLogger, initializeTracing, createHttpMetrics } from '../../shared/libs/observability.js';
 
 const SERVICE_NAME = 'inventory-service';
 const PORT = parseInt(process.env.PORT || '5005', 10);

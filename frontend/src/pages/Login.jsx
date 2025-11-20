@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { t } from "../i18n";
-import { API_ORIGIN, AUTH_BASE } from "../services/apiBase.js";
+import { API_BASE, AUTH_BASE } from "../services/apiBase.js";
 import { fetchJson } from "../services/unwrap.js";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { GiBookCover } from "react-icons/gi";
+
+const LOGIN_URL = `${API_BASE}/auth/login`;
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,6 +16,10 @@ export default function Login() {
   const [error, setError] = useState("");
   const [showPwd, setShowPwd] = useState(false);
 
+  useEffect(() => {
+    fetch(`${API_BASE}/auth/csrf`, { credentials: "include" }).catch(() => { });
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -22,7 +28,7 @@ export default function Login() {
       const data = await fetchJson(LOGIN_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, remember })
       });
 
       if (!data?.token) {

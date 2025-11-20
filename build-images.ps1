@@ -1,26 +1,12 @@
-# Build Docker images for Kubernetes deployment
+## Build Docker images for Kubernetes deployment (Docker Desktop)
 
-# Build gateway
-docker build -t readers-haven-gateway:latest gateway/
+docker build --no-cache -t readers-haven-auth-service:latest       --build-arg SERVICE_DIR=services/auth-service      --build-arg PORT=5001  -f Dockerfile.service .
+docker build --no-cache -t readers-haven-books-service:latest      --build-arg SERVICE_DIR=services/books-service     --build-arg PORT=5002  -f Dockerfile.service .
+docker build --no-cache -t readers-haven-quotes-service:latest     --build-arg SERVICE_DIR=services/quotes-service    --build-arg PORT=5003  -f Dockerfile.service .
+docker build --no-cache -t readers-haven-order-service:latest      --build-arg SERVICE_DIR=services/order-service     --build-arg PORT=5004  -f Dockerfile.service .
+docker build --no-cache -t readers-haven-inventory-service:latest  --build-arg SERVICE_DIR=services/inventory-service --build-arg PORT=5005  -f Dockerfile.service .
+docker build --no-cache -t readers-haven-payment-service:latest    --build-arg SERVICE_DIR=services/payment-service   --build-arg PORT=5010  -f Dockerfile.service .
+docker build --no-cache -t readers-haven-gateway:latest            --build-arg SERVICE_DIR=gateway                    --build-arg PORT=8080  -f Dockerfile.service .
+docker build --no-cache -t readers-haven-frontend:latest           --build-arg SERVICE_DIR=frontend                   --build-arg PORT=5173  -f Dockerfile.service .
 
-# Build auth-service
-docker build -t readers-haven-auth-service:latest services/auth-service/
-
-# Build books-service
-docker build -t readers-haven-books-service:latest services/books-service/
-
-# Build quotes-service
-docker build -t readers-haven-quotes-service:latest services/quotes-service/
-
-# Build order-service
-docker build -t readers-haven-order-service:latest services/order-service/
-
-# Build inventory-service
-docker build -t readers-haven-inventory-service:latest services/inventory-service/
-
-# If using Minikube, load images into cluster
-# minikube image load readers-haven-gateway:latest
-# minikube image load readers-haven-auth-service:latest
-# etc.
-
-Write-Host "Docker images built successfully!"
+Write-Host "Docker images built successfully for docker-desktop Kubernetes."

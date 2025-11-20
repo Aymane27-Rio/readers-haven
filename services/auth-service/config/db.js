@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { MongoMemoryServer } from "mongodb-memory-server";
 
 let mongoServer;
 
@@ -8,7 +7,8 @@ const connectDB = async () => {
     let uri;
 
     if (process.env.NODE_ENV === "test") {
-      // in-mem db for tests
+      // in-mem db for tests (only load dependency in test env)
+      const { MongoMemoryServer } = await import("mongodb-memory-server");
       mongoServer = await MongoMemoryServer.create();
       uri = mongoServer.getUri();
     } else {

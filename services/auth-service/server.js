@@ -12,13 +12,14 @@ import bookRoutes from "./routes/bookRoutes.js";
 import passport, { configurePassport, oauthSuccessRedirect } from "./config/passport.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import quoteRoutes from "./routes/quoteRoutes.js";
+import { csrf } from "./controllers/authController.js";
 import fs from "fs";
 import path from "path";
 import { requestId } from "./utils/requestId.js";
 import { logger } from "./utils/logger.js";
 import { config } from "./utils/config.js";
 import { ok, error as sendError } from "./utils/response.js";
-import { initializeTracing, createHttpMetrics } from "shared-libs/libs/observability";
+import { initializeTracing, createHttpMetrics } from "../../shared/libs/observability.js";
 
 console.log("MONGO_URI:", process.env.MONGO_URI);
 
@@ -34,6 +35,7 @@ app.use(requestId);
 app.use(helmet());
 app.use(compression());
 app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+// Global baseline rate limit
 app.use(rateLimit({ windowMs: 60 * 1000, max: 120 }));
 app.use(express.json());
 // Basic request logging
@@ -44,7 +46,7 @@ configurePassport();
 
 // Ensure uploads directory exists
 const uploadsDir = path.resolve("uploads");
-try { if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) {}
+try { if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true }); } catch (_) { }
 app.use("/uploads", express.static(uploadsDir));
 
 app.get("/", (req, res) => ok(res, { service: "readers-haven-api", status: "up" }, "Readers Haven API is running"));
@@ -55,7 +57,19 @@ app.get('/health', (_req, res) => {
 
 app.get('/metrics', metricsHandler);
 
-app.use("/api/auth", authRoutes);
+// Explicit CSRF endpoints for SPA (support both /api/auth and /auth)
+app.get("/api/auth/csrf", csrf);
+app.get("/auth/csrf", csrf);
+
+// Stricter limiter just for auth endpoints (login/register/reset)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "Too many auth attempts, please try again later.",
+});
+
+app.use("/api/auth", authLimiter, authRoutes);
+app.use("/auth", authLimiter, authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/quotes", quoteRoutes);
@@ -64,6 +78,13 @@ app.use("/api/quotes", quoteRoutes);
 app.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
 app.get(
   "/auth/google/callback",
+  passport.authenticate("google", { session: false, failureRedirect: (process.env.FRONTEND_URL || "http://localhost:5173") + "/login?oauth=failed" }),
+  oauthSuccessRedirect
+);
+
+app.get("/google", passport.authenticate("google", { scope: ["profile", "email"], session: false }));
+app.get(
+  "/google/callback",
   passport.authenticate("google", { session: false, failureRedirect: (process.env.FRONTEND_URL || "http://localhost:5173") + "/login?oauth=failed" }),
   oauthSuccessRedirect
 );

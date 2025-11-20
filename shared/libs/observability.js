@@ -27,9 +27,9 @@ export function createLogger(serviceName) {
   const transport = process.env.NODE_ENV === 'production'
     ? undefined
     : {
-        target: 'pino-pretty',
-        options: { translateTime: 'SYS:standard', colorize: true, singleLine: true },
-      };
+      target: 'pino-pretty',
+      options: { translateTime: 'SYS:standard', colorize: true, singleLine: true },
+    };
 
   return pino({
     name: serviceName,
@@ -43,36 +43,42 @@ export function initializeTracing(serviceName, logger) {
     return;
   }
 
-  const baseUrl = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || process.env.OTEL_EXPORTER_OTLP_HTTP_ENDPOINT || 'http://localhost:4318';
-  const url = `${baseUrl.replace(/\/$/, '')}/v1/traces`;
+  try {
+    const baseUrl = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || process.env.OTEL_EXPORTER_OTLP_HTTP_ENDPOINT || 'http://localhost:4318';
+    const url = `${baseUrl.replace(/\/$/, '')}/v1/traces`;
 
-  const exporter = new OTLPTraceExporter({ url });
-  const sdk = new NodeSDK({
-    resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
-    }),
-    traceExporter: exporter,
-    instrumentations: [getNodeAutoInstrumentations()],
-  });
-
-  sdk.start()
-    .then(() => {
-      tracingState.initialized = true;
-      tracingState.sdk = sdk;
-      logger?.info?.({ msg: 'Tracing initialized', exporter: url });
-    })
-    .catch((err) => {
-      logger?.warn?.({ msg: 'Tracing disabled - exporter unavailable', error: err.message });
+    const exporter = new OTLPTraceExporter({ url });
+    const sdk = new NodeSDK({
+      resource: new Resource({
+        [SemanticResourceAttributes.SERVICE_NAME]: serviceName,
+      }),
+      traceExporter: exporter,
+      instrumentations: [getNodeAutoInstrumentations()],
     });
 
-  const shutdown = () => {
-    if (tracingState.sdk) {
-      tracingState.sdk.shutdown().catch(() => {});
-    }
-  };
+    const startResult = sdk.start();
 
-  process.once('SIGTERM', shutdown);
-  process.once('SIGINT', shutdown);
+    Promise.resolve(startResult)
+      .then(() => {
+        tracingState.initialized = true;
+        tracingState.sdk = sdk;
+        logger?.info?.({ msg: 'Tracing initialized', exporter: url });
+      })
+      .catch((err) => {
+        logger?.warn?.({ msg: 'Tracing disabled - exporter unavailable', error: err.message });
+      });
+
+    const shutdown = () => {
+      if (tracingState.sdk) {
+        tracingState.sdk.shutdown().catch(() => { });
+      }
+    };
+
+    process.once('SIGTERM', shutdown);
+    process.once('SIGINT', shutdown);
+  } catch (err) {
+    logger?.warn?.({ msg: 'Tracing disabled - initialization error', error: err.message });
+  }
 }
 
 export function createHttpMetrics(serviceName) {
