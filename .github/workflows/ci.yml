@@ -47,7 +47,7 @@ jobs:
           npm ci --prefix services/quotes-service
           npm ci --prefix services/order-service
           npm ci --prefix services/inventory-service
-          npm ci --prefix services/payment-service
+          npm install --prefix services/payment-service
           npm ci --prefix gateway
 
       - name: Run All Tests
