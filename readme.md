@@ -1,17 +1,17 @@
 # 📚 Readers Haven
 
-Readers Haven is a full-stack web application for book lovers — allowing users to explore, review, and share their favorite reads within a vibrant community.  
-Built with **React + Vite** on the frontend and **Node.js + Express + MongoDB** on the backend, orchestrated with **Kubernetes** on Docker Desktop.
+Readers Haven is a full-stack web application for book lovers — allowing users to explore, review, and share their favorite reads within a simple, modern interface.  
+The project uses **React + Vite** for the frontend, **Node.js + Express + MongoDB** for the backend, and **Docker + Kubernetes** for local orchestration on Docker Desktop.
 
 ---
 
 ## Features
-- Discover and browse a curated library of books
-- Add, edit, and review your favorite titles
-- Email/password authentication with password reset
-- Google OAuth login (optional) via Google Cloud Console
-- Secure backend API (JWT + HttpOnly session cookie)
-- React + Vite SPA frontend with a Goodreads-like UI
+- Browse and discover a curated book library
+- Add, edit, and review books
+- Email/password authentication (with password reset)
+- Optional Google login
+- React SPA with a clean, Goodreads-inspired UI
+- API served through a single gateway
 
 ---
 
@@ -20,7 +20,7 @@ Built with **React + Vite** on the frontend and **Node.js + Express + MongoDB** 
 |----------|--------------------------------------|
 | Frontend | React, Vite, TailwindCSS            |
 | Backend  | Node.js, Express                    |
-| Services | Auth, Books, Orders, Inventory, etc |
+| Services | Auth, Books, Orders, Inventory      |
 | Database | MongoDB                             |
 | Gateway  | Node.js reverse proxy               |
 | DevOps   | Docker, Kubernetes (Docker Desktop) |
@@ -30,11 +30,10 @@ Built with **React + Vite** on the frontend and **Node.js + Express + MongoDB** 
 ## Prerequisites
 
 - **OS**: Windows (tested with Docker Desktop + Kubernetes)
-- **Node.js**: v18+ recommended
-- **Package Manager**: `npm` (or `pnpm`/`yarn` if you adapt commands)
+- **Node.js**: v18+ (recommended)
 - **Docker Desktop** with **Kubernetes** enabled
 - **kubectl** in your `PATH`
-- **PowerShell** (for the provided `*.ps1` scripts)
+- **PowerShell** (for the helper scripts)
 
 ---
 
@@ -119,7 +118,7 @@ Most configuration is driven by environment variables and Kubernetes ConfigMaps/
 
 ## Running the Stack with Kubernetes (Recommended)
 
-This is the easiest way for a friend to get the **entire** application (frontend + all services + MongoDB) running.
+This starts the **entire** application (frontend + all backend services + MongoDB).
 
 1. **Clone the repository**
 
@@ -136,27 +135,20 @@ This is the easiest way for a friend to get the **entire** application (frontend
    cd ..
    ```
 
-3. **Create root `.env`** (see example above)
+3. **Create a simple root `.env` file**
 
-4. **(Optional) Configure Google OAuth**
+   Minimal example:
 
-   If you want Google login to work:
+   ```bash
+   FRONTEND_URL=http://localhost:32173
+   BACKEND_URL=http://localhost
+   ```
 
-   - In Google Cloud Console create an OAuth client:
-     - Authorized JavaScript origins:
-       - `http://localhost:5173`
-       - `http://localhost:32173`
-     - Authorized redirect URI:
-       - `http://localhost/auth/google/callback`
-   - Copy the **Client ID** and **Client Secret** into:
-     - `./.env` (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`)
-     - `k8s-manifests/app-secrets.local.yml` (if you created it)
+   Google OAuth is optional; the app works without it.
 
-   If you skip this, email/password flows will still work; Google login will not.
+4. **Start Docker Desktop (Kubernetes ON)**
 
-5. **Start Docker Desktop with Kubernetes enabled**
-
-6. **Build Docker images**
+5. **Build Docker images**
 
    From the repo root in PowerShell:
 
@@ -164,34 +156,28 @@ This is the easiest way for a friend to get the **entire** application (frontend
    ./build-images.ps1
    ```
 
-7. **Apply Kubernetes manifests**
+6. **Deploy Kubernetes manifests**
 
    ```bash
    ./deploy-k8s.ps1
-   # or, equivalently:
+   # or:
    # kubectl apply -f k8s-manifests/
    ```
 
-8. **(Optional) Apply your local secrets override**
-
-   ```bash
-   kubectl apply -f k8s-manifests/app-secrets.local.yml -n readers-haven
-   ```
-
-9. **Watch pods until everything is running**
+7. **Check that everything is running**
 
    ```bash
    kubectl get pods -n readers-haven
    ```
 
-   All pods (auth-service, gateway, frontend, mongo, etc.) should show `1/1 Running`.
+   All pods should show `Running`.
 
-10. **Open the app**
+8. **Open the app**
 
-    - Frontend (NodePort): http://localhost:32173/
-    - Gateway (Ingress host): http://localhost/
+   - Frontend: http://localhost:32173/
+   - Gateway: http://localhost/
 
-    The frontend is configured to call the backend via the gateway using `VITE_API_BASE=http://localhost/api`.
+   The frontend uses the gateway for all API calls.
 
 ---
 
