@@ -219,6 +219,61 @@ The Vite dev server proxies API calls directly to `http://localhost/api` (the ga
 
 ---
 
+## Monitoring & Observability
+
+- **Prometheus (metrics & alerts)**
+  - Namespace: `monitoring`
+  - Service: `prometheus`
+  - Port-forward locally:
+
+    ```bash
+    kubectl -n monitoring port-forward svc/prometheus 9090:9090
+    ```
+
+  - UI: http://localhost:9090
+  - Config & scrape rules live in `k8s-manifests/monitoring.yml` under the `prometheus-config` and `prometheus-rules` ConfigMaps.
+
+- **Grafana (dashboards)**
+  - Namespace: `monitoring`
+  - Service: `grafana`
+  - Port-forward locally:
+
+    ```bash
+    kubectl -n monitoring port-forward svc/grafana 3000:3000
+    ```
+
+  - UI: http://localhost:3000
+  - Default credentials (local only): `admin` / `admin`
+  - The Prometheus datasource and the **Readers Haven Overview** dashboard are provisioned via the `grafana-datasources` and `grafana-dashboards` ConfigMaps in `k8s-manifests/monitoring.yml`.
+
+- **How to test alerts (locally)**
+  - Ensure the monitoring stack is running:
+
+    ```bash
+    kubectl get pods -n monitoring
+    ```
+
+  - Port-forward Alertmanager (optional UI):
+
+    ```bash
+    kubectl -n monitoring port-forward svc/alertmanager 9093:9093
+    ```
+
+  - View alerts:
+    - Prometheus Alerts page: http://localhost:9090/alerts
+    - Alertmanager UI: http://localhost:9093
+
+  - Example triggers:
+    - **PodRestarts**: delete a pod in the `readers-haven` namespace and watch the restart alert fire:
+
+      ```bash
+      kubectl delete pod <pod-name> -n readers-haven
+      ```
+
+    - **HighErrorRate**: send repeated requests to an endpoint that returns errors (for example, a non-existent route) using `curl` or a simple load script until the `HighErrorRate` alert appears.
+
+---
+
 ## Notes
 
 - Do not commit any `.env` files or `k8s-manifests/app-secrets.local.yml` containing real credentials.
