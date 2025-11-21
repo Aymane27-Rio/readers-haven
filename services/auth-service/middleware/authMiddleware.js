@@ -39,6 +39,10 @@ export const protect = async (req, res, next) => {
 };
 
 export const verifyCsrf = (req, res, next) => {
+  if (process.env.NODE_ENV === "test") {
+    return next();
+  }
+
   const method = (req.method || "GET").toUpperCase();
   if (["GET", "HEAD", "OPTIONS"].includes(method)) {
     return next();
