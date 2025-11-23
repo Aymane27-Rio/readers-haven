@@ -53,6 +53,10 @@ kind: Service
 metadata:
   name: auth-service
   namespace: readers-haven
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "5001"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: auth-service

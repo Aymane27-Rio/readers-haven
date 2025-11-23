@@ -2,8 +2,7 @@
 
 Readers Haven is a full-stack web application for book lovers — allowing users to explore, review, and share their favorite reads within a simple, modern interface.  
 The project uses **React + Vite** for the frontend, **Node.js + Express + MongoDB** for the backend, and **Docker + Kubernetes** for local orchestration on Docker Desktop.
-
----
+This project was the result of a collaboration between Ayman Benmessaoud and Abdelilah Ikbi.
 
 ## Features
 - Browse and discover a curated book library
@@ -41,7 +40,7 @@ The project uses **React + Vite** for the frontend, **Node.js + Express + MongoD
 
 Most configuration is driven by environment variables and Kubernetes ConfigMaps/Secrets.
 
-- **Root `.env`** (not committed)
+- **Root `.env`** 
   - Location: `./.env`
   - Example:
 
@@ -71,7 +70,7 @@ Most configuration is driven by environment variables and Kubernetes ConfigMaps/
     - `VITE_API_BASE`, `BACKEND_URL`, service URLs, etc.
   - You usually do **not** need to edit this unless you change ports/hosts.
 
-- **Kubernetes Secret (do NOT commit real values)**
+- **Kubernetes Secret **
   - In `k8s-manifests/config.yml` there is a `Secret` named `app-secrets` with **placeholder** values:
 
     ```yaml
@@ -112,7 +111,6 @@ Most configuration is driven by environment variables and Kubernetes ConfigMaps/
     kubectl apply -f k8s-manifests/app-secrets.local.yml -n readers-haven
     ```
 
-> ⚠️ Never commit real secrets (.env files or `app-secrets.local.yml`) to GitHub.
 
 ---
 
@@ -273,9 +271,3 @@ The Vite dev server proxies API calls directly to `http://localhost/api` (the ga
     - **HighErrorRate**: send repeated requests to an endpoint that returns errors (for example, a non-existent route) using `curl` or a simple load script until the `HighErrorRate` alert appears.
 
 ---
-
-## Notes
-
-- Do not commit any `.env` files or `k8s-manifests/app-secrets.local.yml` containing real credentials.
-- Google OAuth and reCAPTCHA are optional for local testing; email/password auth, signup, and password reset work without them.
-- This README is focused on the **Docker Desktop + Kubernetes** path, which is the most consistent way to run the whole system locally.

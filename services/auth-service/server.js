@@ -34,10 +34,28 @@ const app = express();
 app.use(requestId);
 app.use(helmet());
 app.use(compression());
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+
+// CORS: allow both frontend dev and production origins
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:5173",
+  "http://localhost:32173",
+  "http://localhost:5173"
+];
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'X-CSRF-Token', 'X-XSRF-Token', 'Authorization'],
+}));
 // Global baseline rate limit
 app.use(rateLimit({ windowMs: 60 * 1000, max: 120 }));
-app.use(express.json());
+// Parse JSON but skip multipart/form-data (let multer handle it)
+app.use((req, res, next) => {
+  if (req.is('multipart/form-data')) {
+    return next();
+  }
+  express.json()(req, res, next);
+});
 // Basic request logging
 app.use((req, _res, next) => { logger.info({ id: req.id, method: req.method, url: req.url }); next(); });
 app.use(metricsMiddleware);

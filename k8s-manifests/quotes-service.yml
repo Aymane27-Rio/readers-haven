@@ -53,6 +53,10 @@ kind: Service
 metadata:
   name: quotes-service
   namespace: readers-haven
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "5003"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: quotes-service

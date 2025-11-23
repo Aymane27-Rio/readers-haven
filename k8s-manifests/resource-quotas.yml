@@ -1,0 +1,123 @@
+---
+# Resource Quotas for readers-haven namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: readers-haven-quota
+  namespace: readers-haven
+spec:
+  hard:
+    # CPU limits
+    requests.cpu: "10"
+    limits.cpu: "20"
+    
+    # Memory limits
+    requests.memory: "20Gi"
+    limits.memory: "40Gi"
+    
+    # Pod limits
+    pods: "50"
+    
+    # Service limits
+    services: "15"
+    
+    # Storage limits
+    persistentvolumeclaims: "5"
+    
+    # Request count limits
+    requests.storage: "100Gi"
+
+---
+# Resource Quota for monitoring namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: monitoring-quota
+  namespace: monitoring
+spec:
+  hard:
+    # CPU limits
+    requests.cpu: "5"
+    limits.cpu: "10"
+    
+    # Memory limits
+    requests.memory: "10Gi"
+    limits.memory: "20Gi"
+    
+    # Pod limits
+    pods: "20"
+    
+    # Service limits
+    services: "10"
+    
+    # Storage limits
+    persistentvolumeclaims: "3"
+    
+    # Request count limits
+    requests.storage: "50Gi"
+
+---
+# LimitRange for readers-haven namespace (enforces per-pod limits)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: readers-haven-limits
+  namespace: readers-haven
+spec:
+  limits:
+  # Container limits
+  - type: Container
+    max:
+      cpu: "1"
+      memory: "1Gi"
+    min:
+      cpu: "10m"
+      memory: "32Mi"
+    default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+  
+  # Pod limits
+  - type: Pod
+    max:
+      cpu: "2"
+      memory: "2Gi"
+    min:
+      cpu: "20m"
+      memory: "64Mi"
+
+---
+# LimitRange for monitoring namespace
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: monitoring-limits
+  namespace: monitoring
+spec:
+  limits:
+  # Container limits
+  - type: Container
+    max:
+      cpu: "2"
+      memory: "2Gi"
+    min:
+      cpu: "10m"
+      memory: "32Mi"
+    default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "256Mi"
+  
+  # Pod limits
+  - type: Pod
+    max:
+      cpu: "4"
+      memory: "4Gi"
+    min:
+      cpu: "20m"
+      memory: "64Mi"

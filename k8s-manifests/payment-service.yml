@@ -58,6 +58,10 @@ kind: Service
 metadata:
   name: payment-service
   namespace: readers-haven
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "5010"
+    prometheus.io/path: "/metrics"
 spec:
   selector:
     app: payment-service
